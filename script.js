@@ -81,24 +81,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateRangeOptions(unit) {
-        const fromSelect = document.getElementById('rangeFrom');
-        const toSelect = document.getElementById('rangeTo');
-        let options;
-        if (unit === 'سورة') {
-            options = quranData.surahs.map(s => ({id: s.index, name: s.titleAr }));
-        } else if (unit === 'جزء') {
-            options = quranData.juzs.map(j => ({ id: j.index, name: `الجزء ${j.index} (${j.start.nameAr})` }));
-        } else { // صفحة
-            options = quranData.pages.map(p => ({ id: p.index, name: `صفحة ${p.index}` }));
-        }
+    const fromSelect = document.getElementById('rangeFrom');
+    const toSelect = document.getElementById('rangeTo');
+    let options;
 
-        fromSelect.innerHTML = toSelect.innerHTML = '';
-        options.forEach(opt => {
-            fromSelect.innerHTML += `<option value="${opt.id}">من: ${opt.name}</option>`;
-            toSelect.innerHTML += `<option value="${opt.id}">إلى: ${opt.name}</option>`;
-        });
-        toSelect.value = options[options.length - 1].id;
+    if (unit === 'سورة') {
+        options = quranData.surahs.map(s => ({ id: s.index, name: s.titleAr }));
+    } else if (unit === 'جزء') {
+        options = quranData.juzs.map(j => ({ id: j.index, name: `الجزء ${j.index} (${j.start.nameAr})` }));
+    } else { // صفحة
+        options = quranData.pages.map(p => ({ id: p.index, name: `صفحة ${p.index}` }));
     }
+
+    // امسح أي محتوى قديم
+    fromSelect.innerHTML = '';
+    toSelect.innerHTML = '';
+
+    // أنشئ Fragment لكل واحدة
+    const fragFrom = document.createDocumentFragment();
+    const fragTo = document.createDocumentFragment();
+
+    // املاهم جوه Fragment
+    options.forEach(opt => {
+        const optFrom = document.createElement('option');
+        optFrom.value = opt.id;
+        optFrom.textContent = `من: ${opt.name}`;
+        fragFrom.appendChild(optFrom);
+
+        const optTo = document.createElement('option');
+        optTo.value = opt.id;
+        optTo.textContent = `إلى: ${opt.name}`;
+        fragTo.appendChild(optTo);
+    });
+
+    // بعد ما تجهزهم كلهم، ضيفهم مرة واحدة
+    fromSelect.appendChild(fragFrom);
+    toSelect.appendChild(fragTo);
+
+    // خلي القيمة الافتراضية في "إلى" تكون آخر عنصر
+    toSelect.value = options.at(-1).id;
+}
+
 
     // ==========================================================
     // ==== بداية الجزء الذي تم تعديله (الدالة التالية) ====
