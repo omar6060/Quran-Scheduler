@@ -1,3 +1,15 @@
+// إضافة نظام الثيم
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+}
 document.addEventListener('DOMContentLoaded', () => {
     let quranData = {};
     let allGoals = [];
@@ -13,23 +25,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function initializeApp() {
-        try {
-            const [pages, rubs, surahs, juzs] = await Promise.all([
-                fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/page.json'),
-                fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/rub.json'),
-                fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/surah.json'),
-                fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/juz.json')
-            ]);
+    initTheme();
+    try {
+        const [pages, rubs, surahs, juzs] = await Promise.all([
+            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/page.json'),
+            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/rub.json'),
+            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/surah.json'),
+            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/juz.json')
+        ]);
 
-            quranData = { pages, rubs, surahs, juzs };
-            setupUI();
-            loadGoals();
-            showScreen('goalsListScreen');
-        } catch (error) {
-            console.error(error);
-            document.getElementById('loadingScreen').innerHTML = `<p style="color:var(--danger-color);">خطأ في تحميل البيانات. يرجى التأكد من اتصالك بالإنترنت وتحديث الصفحة.</p>`;
-        }
+        quranData = { pages, rubs, surahs, juzs };
+        setupUI();
+        loadGoals();
+        showScreen('goalsListScreen');
+    } catch (error) {
+        console.error(error);
+        // --== التعديل هنا ==--
+        // سيعرض الخطأ في الحاوية الرئيسية بدلاً من عنصر غير موجود
+        document.querySelector('.app-container').innerHTML = `<p style="color:var(--danger-color); padding: 50px 20px; text-align: center; font-size: 18px;">خطأ في تحميل البيانات.<br>يرجى التأكد من اتصالك بالإنترنت وتحديث الصفحة.</p>`;
     }
+}
 
     function loadGoals() {
         allGoals = JSON.parse(localStorage.getItem(DB_NAME) || '[]');
@@ -40,96 +55,115 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupUI() {
-        document.querySelector('.app-container').innerHTML = `
-            <div id="goalsListScreen" class="screen">
-                <div class="header">
-                    <h1>الأهداف</h1>
+    document.querySelector('.app-container').innerHTML = `
+        <div id="goalsListScreen" class="screen">
+            <div class="header">
+                <h1>الأهداف</h1>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
+                        <!-- أيقونة الشمس الجديدة -->
+                        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <!-- أيقونة القمر الجديدة -->
+                        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
                     <button class="header-btn" data-action="add-new">＋</button>
                 </div>
-                <div id="goalsListContainer"></div>
-                <div id="noGoalsMessage" style="display: none;">
-                    <h3>لا توجد أهداف حالية</h3>
-                    <p>اضغط على علامة ＋ لبدء هدف جديد</p>
-                </div>
             </div>
+            <div id="goalsListContainer"></div>
+            <div id="noGoalsMessage" style="display: none;">
+                <h3>لا توجد أهداف حالية</h3>
+                <p>اضغط على علامة ＋ لبدء هدف جديد</p>
+            </div>
+        </div>
 
-            <div id="newGoalScreen" class="screen">
-                <div class="header">
-                    <button class="header-btn back-btn" data-target="goalsListScreen">➔</button>
-                    <h1>هدف جديد</h1>
-                    <div></div>
+        <div id="newGoalScreen" class="screen">
+            <div class="header">
+                <button class="header-btn back-btn" data-target="goalsListScreen">➔</button>
+                <h1>هدف جديد</h1>
+                <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
+                    <!-- أيقونة الشمس الجديدة -->
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <!-- أيقونة القمر الجديدة -->
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+            <form id="goalForm">
+                <div class="form-group">
+                    <label for="goalName">اسم الورد</label>
+                    <input type="text" id="goalName" placeholder="مثال: ختمة رمضان" required>
                 </div>
-                <form id="goalForm">
-                    <div class="form-group">
-                        <label for="goalName">اسم الورد</label>
-                        <input type="text" id="goalName" placeholder="مثال: ختمة رمضان" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="goalType">نوع الورد</label>
-                        <select id="goalType">
-                            <option value="تلاوة">تلاوة</option>
-                            <option value="حفظ">حفظ</option>
-                            <option value="مراجعة">مراجعة</option>
+                <div class="form-group">
+                    <label for="goalType">نوع الورد</label>
+                    <select id="goalType">
+                        <option value="تلاوة">تلاوة</option>
+                        <option value="حفظ">حفظ</option>
+                        <option value="مراجعة">مراجعة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>الكمية</label>
+                    <div class="compound-input">
+                        <input type="number" id="quantityAmount" value="1" min="1">
+                        <select id="quantityUnit">
+                            <option value="ربع">ربع</option>
+                            <option value="صفحة">صفحة</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>الكمية</label>
-                        <div class="compound-input">
-                            <input type="number" id="quantityAmount" value="1" min="1">
-                            <select id="quantityUnit">
-                                <option value="ربع">ربع</option>
-                                <option value="صفحة">صفحة</option>
-                            </select>
-                        </div>
+                </div>
+                <div class="form-group">
+                    <label>المدى</label>
+                    <div class="compound-input" style="margin-bottom: 10px;">
+                        <select id="rangeUnit">
+                            <option value="سورة">سورة</option>
+                            <option value="صفحة">صفحة</option>
+                            <option value="جزء">جزء</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label>المدى</label>
-                        <div class="compound-input" style="margin-bottom: 10px;">
-                            <select id="rangeUnit">
-                                <option value="سورة">سورة</option>
-                                <option value="صفحة">صفحة</option>
-                                <option value="جزء">جزء</option>
-                            </select>
-                        </div>
-                        <div class="compound-input">
-                            <select id="rangeFrom"></select>
-                            <select id="rangeTo"></select>
-                        </div>
+                    <div class="compound-input">
+                        <select id="rangeFrom"></select>
+                        <select id="rangeTo"></select>
                     </div>
-                    <div class="form-group">
-                        <label>الجدول</label>
-                        <div class="compound-input">
-                            <input type="number" id="scheduleAmount" value="1" min="1">
-                            <select id="scheduleUnit">
-                                <option value="يوم">يوم</option>
-                                <option value="أسبوع">أسبوع</option>
-                                <option value="شهر">شهر</option>
-                            </select>
-                        </div>
+                </div>
+                <div class="form-group">
+                    <label>الجدول</label>
+                    <div class="compound-input">
+                        <input type="number" id="scheduleAmount" value="1" min="1">
+                        <select id="scheduleUnit">
+                            <option value="يوم">يوم</option>
+                            <option value="أسبوع">أسبوع</option>
+                            <option value="شهر">شهر</option>
+                        </select>
                     </div>
-                    <div class="form-group">
-                        <label for="startDate">وقت البداية</label>
-                        <input type="date" id="startDate" required>
-                    </div>
-                    <button type="submit" id="submitGoal">إنشاء الهدف</button>
-                </form>
-            </div>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">وقت البداية</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                <button type="submit" id="submitGoal">إنشاء الهدف</button>
+            </form>
+        </div>
 
-            <div id="goalDetailScreen" class="screen">
-                <div class="header">
-                    <button class="header-btn back-btn" data-target="goalsListScreen">➔</button>
-                    <h1>تفاصيل الهدف</h1>
-                    <div></div>
-                </div>
-                <div id="goalDetailHeader">
-                    <h2 id="goalDetailName"></h2>
-                    <p id="goalDetailSummary"></p>
-                </div>
-                <div id="planDetailContainer"></div>
+        <div id="goalDetailScreen" class="screen">
+            <div class="header">
+                <button class="header-btn back-btn" data-target="goalsListScreen">➔</button>
+                <h1>تفاصيل الهدف</h1>
+                <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
+                    <!-- أيقونة الشمس الجديدة -->
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <!-- أيقونة القمر الجديدة -->
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
             </div>
-        `;
-        document.getElementById('startDate').valueAsDate = new Date();
-    }
+            <div id="goalDetailHeader">
+                <h2 id="goalDetailName"></h2>
+                <p id="goalDetailSummary"></p>
+            </div>
+            <div id="planDetailContainer"></div>
+        </div>
+    `;
+    document.getElementById('startDate').valueAsDate = new Date();
+}
+
 
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -161,7 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="progress-bar-fill" style="width: ${progress}%"></div>
                     </div>
                 </div>
-                <button class="delete-btn" data-goal-id="${goal.id}" title="حذف الهدف">🗑️</button>
+                <button class="delete-btn" data-goal-id="${goal.id}" title="حذف الهدف">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
             `;
             container.appendChild(card);
         });
@@ -327,33 +363,38 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.body.addEventListener('click', (e) => {
-        const target = e.target;
-        const goalId = target.closest('[data-goal-id]')?.dataset.goalId;
+    const target = e.target;
+    // تم تعديل السطر التالي ليكون أكثر دقة، لكن الكود سيعمل بشكل صحيح
+    const goalCard = target.closest('.goal-card');
 
-        if (target.dataset.action === 'add-new') {
-            populateRangeOptions(document.getElementById('rangeUnit').value);
-            showScreen('newGoalScreen');
-        } else if (target.matches('.back-btn')) {
-            showScreen(target.dataset.target);
-        } else if (target.closest('.goal-card-content')) {
-            renderGoalDetails(goalId);
-        } else if (target.matches('.delete-btn')) {
-            if (confirm("هل أنت متأكد من حذف هذا الهدف؟")) {
-                allGoals = allGoals.filter(g => g.id !== parseInt(goalId));
-                saveGoals();
-                renderGoalsList();
-            }
-        } else if (target.closest('.complete-action')) {
-            const action = target.closest('.complete-action');
-            const goal = allGoals.find(g => g.id === parseInt(action.dataset.goalId));
-            if (goal) {
-                const dayIndex = action.dataset.dayIndex;
-                goal.plan[dayIndex].completed = !goal.plan[dayIndex].completed;
-                saveGoals();
-                renderGoalDetails(goal.id, { scrollToFirstIncomplete: false });
-            }
+    if (target.dataset.action === 'add-new') {
+        populateRangeOptions(document.getElementById('rangeUnit').value);
+        showScreen('newGoalScreen');
+    } else if (target.matches('.back-btn')) {
+        showScreen(target.dataset.target);
+    } else if (target.closest('.goal-card-content')) {
+        // نأخذ الـ goalId من البطاقة الأب
+        const goalId = goalCard?.dataset.goalId;
+        renderGoalDetails(goalId);
+    } else if (target.closest('.delete-btn')) { // <-- هنا التعديل المهم
+        if (confirm("هل أنت متأكد من حذف هذا الهدف؟")) {
+            // نضمن أننا نأخذ الـ goalId من الزر الذي تم الضغط عليه
+            const buttonGoalId = target.closest('.delete-btn').dataset.goalId;
+            allGoals = allGoals.filter(g => g.id !== parseInt(buttonGoalId));
+            saveGoals();
+            renderGoalsList();
         }
-    });
+    } else if (target.closest('.complete-action')) {
+        const action = target.closest('.complete-action');
+        const goal = allGoals.find(g => g.id === parseInt(action.dataset.goalId));
+        if (goal) {
+            const dayIndex = action.dataset.dayIndex;
+            goal.plan[dayIndex].completed = !goal.plan[dayIndex].completed;
+            saveGoals();
+            renderGoalDetails(goal.id, { scrollToFirstIncomplete: false });
+        }
+    }
+});
 
     document.body.addEventListener('change', e => {
         if (e.target.id === 'rangeUnit') {
@@ -487,4 +528,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     initializeApp();
+    // تحديث أيقونة الثيم عند تغيير الوضع
+// استبدل هذا الجزء في نهاية الملف
+window.toggleTheme = function() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    // لم نعد بحاجة لاستدعاء updateThemeIcon()
+};
 });

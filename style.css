@@ -1,3 +1,4 @@
+/* Dark Mode Variables (الوضع الافتراضي) */
 :root {
     --bg-color: #121212;
     --surface-color: #1e1e1e;
@@ -10,6 +11,19 @@
     --border-color: #333;
 }
 
+/* Light Mode Variables */
+[data-theme="light"] {
+    --bg-color: #ffffff;
+    --surface-color: #f8f9fa;
+    --primary-color: #2ecc71;
+    --primary-hover: #27ae60;
+    --primary-light: rgba(46, 204, 113, 0.1);
+    --danger-color: #e74c3c;
+    --text-color: #2c3e50;
+    --text-secondary: #6c757d;
+    --border-color: #dee2e6;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -20,6 +34,7 @@ body {
     color: var(--text-color);
     margin: 0;
     padding: 15px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
@@ -71,6 +86,50 @@ body {
     font-size: 24px;
 }
 
+/* زر تبديل الوضع */
+.theme-toggle {
+    background: none;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: var(--text-color);
+    padding: 0; /* تمت الإضافة */
+}
+
+.theme-toggle:hover {
+    border-color: var(--primary-color);
+    background-color: var(--primary-light);
+}
+
+/* تنسيق أيقونات SVG الاحترافية */
+.theme-toggle svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor; /* استخدم stroke بدلاً من fill */
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.3s ease-in-out;
+}
+
+/* إظهار وإخفاء الأيقونة المناسبة حسب الوضع */
+.theme-toggle .sun-icon { display: none; }
+.theme-toggle .moon-icon { display: block; }
+
+[data-theme="light"] .theme-toggle .sun-icon { display: block; }
+[data-theme="light"] .theme-toggle .moon-icon { display: none; }
+
+/* تأثير بسيط عند التبديل */
+[data-theme="dark"] .theme-toggle:hover .moon-icon { transform: rotate(15deg); }
+[data-theme="light"] .theme-toggle:hover .sun-icon { transform: rotate(15deg); }
+
 .loader {
     text-align: center;
     padding: 50px;
@@ -98,7 +157,7 @@ body {
 }
 
 .goal-card:hover {
-    background-color: #2a2a2a;
+    background-color: var(--primary-light);
 }
 
 .goal-card-content {
@@ -122,7 +181,7 @@ body {
 .goal-card .progress-bar {
     width: 100%;
     height: 6px;
-    background-color: #444;
+    background-color: var(--border-color);
     border-radius: 3px;
     margin-top: 15px;
     overflow: hidden;
@@ -179,6 +238,7 @@ body {
     color: var(--text-color);
     font-family: 'Tajawal', sans-serif;
     font-size: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .form-group input:focus,
@@ -263,12 +323,10 @@ body {
     border-radius: 50%;
     text-align: center;
     line-height: 40px;
-    /* نفس ارتفاع العنصر */
     font-weight: 700;
     font-size: 16px;
     margin-left: 15px;
     display: block;
-    /* مهم نخرج من flex عشان نتحكم في الـ line-height */
 }
 
 .plan-item.completed .day-marker {
@@ -312,4 +370,39 @@ body {
 
 .plan-item:not(.completed) .complete-action:hover {
     border-color: var(--primary-color);
+}
+
+/* --- تعديلات زر الحذف --- */
+
+/* 1. تعديل الزر الحالي ليتناسب مع الأيقونة */
+.goal-card .delete-btn {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    margin-left: 0; 
+    margin-right: 15px;   
+    transition: color 0.2s;
+    padding: 5px;      /* مساحة إضافية لتسهيل الضغط */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: unset;  /* إلغاء حجم الخط الذي كان مخصصًا للإيموجي */
+}
+
+/* 2. الحفاظ على تأثير المرور (hover) */
+.goal-card .delete-btn:hover {
+    color: var(--danger-color);
+}
+
+/* 3. تنسيق أيقونة الحذف الجديدة */
+.goal-card .delete-btn svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
