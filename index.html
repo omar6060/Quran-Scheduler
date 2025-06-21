@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أهداف القرآن - النسخة النهائية</title>
+
+    <!-- Google Fonts Links -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- الربط بملف الأنماط الخارجي -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- سيتم ملء هذا الجزء بواسطة الجافاسكريبت عند بدء تشغيل التطبيق -->
+        <div id="loadingScreen" class="screen active">
+            <p class="loader">جاري تحميل بيانات القرآن الكريم</p>
+        </div>
+        <div id="goalsListScreen" class="screen"></div>
+        <div id="newGoalScreen" class="screen"></div>
+        <div id="goalDetailScreen" class="screen"></div>
+    </div>
+
+    <!-- الربط بملف الجافاسكريبت الخارجي (يفضل وضعه قبل إغلاق وسم الـ body) -->
+    <script src="script.js"></script>
+</body>
+</html>
