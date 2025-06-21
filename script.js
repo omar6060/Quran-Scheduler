@@ -104,34 +104,81 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==== بداية الجزء الذي تم تعديله (الدالة التالية) ====
     // ==========================================================
     function getPagesForRange(range) {
-        let startPage, endPage;
-        if (range.unit === 'صفحة') {
-            startPage = parseInt(range.from);
-            endPage = parseInt(range.to);
-        } else if (range.unit === 'جزء') {
-            // [التصحيح] استخدام '==' بدلاً من '===' للمرونة في مقارنة الأنواع
-            const startJuz = quranData.juzs.find(j => j.index == range.from);
-            const endJuz = quranData.juzs.find(j => j.index == range.to);
-            
-            startPage = parseInt(startJuz?.start?.page || quranData.pages[0].index);
-            endPage = parseInt(endJuz?.end?.page || quranData.pages.at(-1).index);
-
-        } else { // 'سورة'
-            const startSurah = quranData.surahs.find(s => s.index == range.from);
-            const endSurah = quranData.surahs.find(s => s.index == range.to);
-            if (!startSurah || !endSurah) return [];
-            startPage = parseInt(startSurah.page);
-            const endVerseOfEndSurah = `verse_${endSurah.count}`;
-            const pageContainingEndVerse = quranData.pages.find(p => p.end.index == endSurah.index && p.end.verse === endVerseOfEndSurah);
-            if (pageContainingEndVerse) {
-                endPage = parseInt(pageContainingEndVerse.index);
+    let startPage, endPage;
+    
+    if (range.unit === 'صفحة') {
+        startPage = parseInt(range.from);
+        endPage = parseInt(range.to);
+    } else if (range.unit === 'جزء') {
+        const startJuz = quranData.juzs.find(j => j.index == range.from);
+        const endJuz = quranData.juzs.find(j => j.index == range.to);
+        
+        if (!startJuz || !endJuz) {
+            console.error('لم يتم العثور على بيانات الجزء المحدد');
+            return [];
+        }
+        
+        // البحث عن الصفحات التي تحتوي على بداية ونهاية الجزء
+        // نبحث عن الصفحة التي تحتوي على بداية الجزء الأول
+        const startPageObj = quranData.pages.find(page => {
+            const pageStart = getComparableVerseValue(page.start);
+            const pageEnd = getComparableVerseValue(page.end);
+            const juzStart = getComparableVerseValue(startJuz.start);
+            return juzStart >= pageStart && juzStart <= pageEnd;
+        });
+        
+        // نبحث عن الصفحة التي تحتوي على نهاية الجزء الأخير
+        const endPageObj = quranData.pages.find(page => {
+            const pageStart = getComparableVerseValue(page.start);
+            const pageEnd = getComparableVerseValue(page.end);
+            const juzEnd = getComparableVerseValue(endJuz.end);
+            return juzEnd >= pageStart && juzEnd <= pageEnd;
+        });
+        
+        if (!startPageObj || !endPageObj) {
+            console.error('لم يتم العثور على الصفحات المطابقة للجزء المحدد');
+            return [];
+        }
+        
+        startPage = parseInt(startPageObj.index);
+        endPage = parseInt(endPageObj.index);
+        
+    } else { // 'سورة'
+        const startSurah = quranData.surahs.find(s => s.index == range.from);
+        const endSurah = quranData.surahs.find(s => s.index == range.to);
+        if (!startSurah || !endSurah) return [];
+        
+        startPage = parseInt(startSurah.page);
+        
+        // البحث عن الصفحة التي تحتوي على نهاية السورة الأخيرة
+        const endVerseOfEndSurah = `verse_${endSurah.count}`;
+        const pageContainingEndVerse = quranData.pages.find(p => 
+            p.end.index == endSurah.index && p.end.verse === endVerseOfEndSurah
+        );
+        
+        if (pageContainingEndVerse) {
+            endPage = parseInt(pageContainingEndVerse.index);
+        } else {
+            // إذا لم نجد الصفحة المحددة، نأخذ أعلى رقم صفحة تحتوي على هذه السورة
+            const pagesWithEndSurah = quranData.pages.filter(p => p.end.index == endSurah.index);
+            if (pagesWithEndSurah.length > 0) {
+                endPage = Math.max(...pagesWithEndSurah.map(p => parseInt(p.index)));
             } else {
-                endPage = Math.max(...quranData.pages.filter(p => p.end.index == endSurah.index).map(p => parseInt(p.index)));
+                endPage = startPage; // في حالة عدم العثور على أي شيء
             }
         }
-        if (isNaN(startPage) || isNaN(endPage) || startPage > endPage) return [];
-        return quranData.pages.filter(p => parseInt(p.index) >= startPage && parseInt(p.index) <= endPage);
     }
+    
+    if (isNaN(startPage) || isNaN(endPage) || startPage > endPage) {
+        console.error('خطأ في تحديد نطاق الصفحات:', { startPage, endPage, range });
+        return [];
+    }
+    
+    return quranData.pages.filter(p => {
+        const pageIndex = parseInt(p.index);
+        return pageIndex >= startPage && pageIndex <= endPage;
+    });
+}
     // ==========================================================
     // ==== نهاية الجزء الذي تم تعديله ====
     // ==========================================================
