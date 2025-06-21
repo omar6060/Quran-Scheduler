@@ -13,6 +13,7 @@ function toggleTheme() {
 document.addEventListener('DOMContentLoaded', () => {
     let quranData = {};
     let allGoals = [];
+        let currentlyEditingGoalId = null; 
     const DB_NAME = 'tarteelGoalsApp_Final';
 
     async function fetchData(url) {
@@ -174,34 +175,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderGoalsList() {
-        const container = document.getElementById('goalsListContainer');
-        const noGoalsMsg = document.getElementById('noGoalsMessage');
-        container.innerHTML = '';
-        noGoalsMsg.style.display = allGoals.length === 0 ? 'block' : 'none';
+    const container = document.getElementById('goalsListContainer');
+    const noGoalsMsg = document.getElementById('noGoalsMessage');
+    container.innerHTML = '';
+    noGoalsMsg.style.display = allGoals.length === 0 ? 'block' : 'none';
 
-        allGoals.forEach(goal => {
-            const completedCount = goal.plan.filter(p => p.completed).length;
-            const progress = goal.plan.length > 0 ? (completedCount / goal.plan.length) * 100 : 0;
-            const card = document.createElement('div');
-            card.className = 'goal-card';
-            card.innerHTML = `
-                <div class="goal-card-content" data-goal-id="${goal.id}">
-                    <h3>${goal.name}</h3>
-                    <div class="details">
-                        <span>${goal.type}</span>
-                        <span>${completedCount} / ${goal.plan.length} يوم</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-bar-fill" style="width: ${progress}%"></div>
-                    </div>
+    allGoals.forEach(goal => {
+        const completedCount = goal.plan.filter(p => p.completed).length;
+        const progress = goal.plan.length > 0 ? (completedCount / goal.plan.length) * 100 : 0;
+        const card = document.createElement('div');
+        card.className = 'goal-card';
+        // --== هنا التعديل الرئيسي ==--
+        // أضفنا حاوية للأزرار ووضعنا بداخلها زر التعديل الجديد وزر الحذف
+        card.innerHTML = `
+            <div class="goal-card-content" data-goal-id="${goal.id}">
+                <h3>${goal.name}</h3>
+                <div class="details">
+                    <span>${goal.type}</span>
+                    <span>${completedCount} / ${goal.plan.length} يوم</span>
                 </div>
-                <button class="delete-btn" data-goal-id="${goal.id}" title="حذف الهدف">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill" style="width: ${progress}%"></div>
+                </div>
+            </div>
+            <div class="actions-container">
+                <button class="icon-btn edit-btn" data-goal-id="${goal.id}" title="تعديل الهدف">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button class="icon-btn delete-btn" data-goal-id="${goal.id}" title="حذف الهدف">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
-            `;
-            container.appendChild(card);
-        });
-    }
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
 
     function renderGoalDetails(goalId, { scrollToFirstIncomplete = true } = {}) {
         const goal = allGoals.find(g => g.id === parseInt(goalId));
@@ -364,27 +372,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.body.addEventListener('click', (e) => {
     const target = e.target;
-    // تم تعديل السطر التالي ليكون أكثر دقة، لكن الكود سيعمل بشكل صحيح
-    const goalCard = target.closest('.goal-card');
+    
+    // --== الجزء الذي تم تعديله ==--
+    // الآن سنتعامل مع كل حالة على حدة بشكل أوضح
 
+    // الحالة 1: الضغط على زر "إضافة جديد"
     if (target.dataset.action === 'add-new') {
+        currentlyEditingGoalId = null; 
+        document.getElementById('goalForm').reset();
+        document.getElementById('startDate').valueAsDate = new Date();
+        document.querySelector('#newGoalScreen h1').textContent = 'هدف جديد';
+        document.getElementById('submitGoal').textContent = 'إنشاء الهدف';
         populateRangeOptions(document.getElementById('rangeUnit').value);
         showScreen('newGoalScreen');
-    } else if (target.matches('.back-btn')) {
+    } 
+    // الحالة 2: الضغط على زر "العودة"
+    else if (target.matches('.back-btn')) {
         showScreen(target.dataset.target);
-    } else if (target.closest('.goal-card-content')) {
-        // نأخذ الـ goalId من البطاقة الأب
-        const goalId = goalCard?.dataset.goalId;
-        renderGoalDetails(goalId);
-    } else if (target.closest('.delete-btn')) { // <-- هنا التعديل المهم
+    } 
+    // الحالة 3: الضغط على زر التعديل
+    else if (target.closest('.edit-btn')) {
+        const goalId = target.closest('.edit-btn').dataset.goalId;
+        const goalToEdit = allGoals.find(g => g.id === parseInt(goalId));
+        if (goalToEdit) {
+            currentlyEditingGoalId = goalToEdit.id;
+            
+            document.querySelector('#newGoalScreen h1').textContent = 'تعديل الهدف';
+            document.getElementById('submitGoal').textContent = 'حفظ التعديلات';
+
+            document.getElementById('goalName').value = goalToEdit.name;
+            document.getElementById('goalType').value = goalToEdit.type;
+            document.getElementById('quantityAmount').value = goalToEdit.quantity.amount;
+            document.getElementById('quantityUnit').value = goalToEdit.quantity.unit;
+            document.getElementById('scheduleAmount').value = goalToEdit.schedule.amount;
+            document.getElementById('scheduleUnit').value = goalToEdit.schedule.unit;
+            document.getElementById('startDate').value = goalToEdit.startDate;
+            
+            const rangeUnitSelect = document.getElementById('rangeUnit');
+            rangeUnitSelect.value = goalToEdit.range.unit;
+            populateRangeOptions(goalToEdit.range.unit);
+            
+            setTimeout(() => {
+                document.getElementById('rangeFrom').value = goalToEdit.range.from;
+                document.getElementById('rangeTo').value = goalToEdit.range.to;
+            }, 0);
+
+            showScreen('newGoalScreen');
+        }
+    } 
+    // الحالة 4: الضغط على زر الحذف
+    else if (target.closest('.delete-btn')) { 
         if (confirm("هل أنت متأكد من حذف هذا الهدف؟")) {
-            // نضمن أننا نأخذ الـ goalId من الزر الذي تم الضغط عليه
             const buttonGoalId = target.closest('.delete-btn').dataset.goalId;
             allGoals = allGoals.filter(g => g.id !== parseInt(buttonGoalId));
             saveGoals();
             renderGoalsList();
         }
-    } else if (target.closest('.complete-action')) {
+    }
+    // الحالة 5: الضغط على زر إكمال اليوم
+    else if (target.closest('.complete-action')) {
         const action = target.closest('.complete-action');
         const goal = allGoals.find(g => g.id === parseInt(action.dataset.goalId));
         if (goal) {
@@ -393,6 +439,14 @@ document.addEventListener('DOMContentLoaded', () => {
             saveGoals();
             renderGoalDetails(goal.id, { scrollToFirstIncomplete: false });
         }
+    }
+    // الحالة 6 (الأخيرة): الضغط على محتوى الهدف نفسه
+    else if (target.closest('.goal-card-content')) {
+        // هذا هو التصحيح الرئيسي
+        // نأخذ الـ ID مباشرة من العنصر الذي تم الضغط عليه
+        const contentDiv = target.closest('.goal-card-content');
+        const goalId = contentDiv.dataset.goalId;
+        renderGoalDetails(goalId);
     }
 });
 
@@ -403,130 +457,152 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.body.addEventListener('submit', e => {
-        if (e.target.id !== 'goalForm') return;
-        e.preventDefault();
+    if (e.target.id !== 'goalForm') return;
+    e.preventDefault();
 
-        const goal = {
-            id: Date.now(),
-            name: document.getElementById('goalName').value,
-            type: document.getElementById('goalType').value,
-            quantity: {
-                amount: parseInt(document.getElementById('quantityAmount').value),
-                unit: document.getElementById('quantityUnit').value
-            },
-            range: {
-                unit: document.getElementById('rangeUnit').value,
-                from: document.getElementById('rangeFrom').value,
-                to: document.getElementById('rangeTo').value
-            },
-            schedule: {
-                amount: parseInt(document.getElementById('scheduleAmount').value),
-                unit: document.getElementById('scheduleUnit').value
-            },
-            startDate: document.getElementById('startDate').value
-        };
+    const goalData = {
+        name: document.getElementById('goalName').value,
+        type: document.getElementById('goalType').value,
+        quantity: {
+            amount: parseInt(document.getElementById('quantityAmount').value),
+            unit: document.getElementById('quantityUnit').value
+        },
+        range: {
+            unit: document.getElementById('rangeUnit').value,
+            from: document.getElementById('rangeFrom').value,
+            to: document.getElementById('rangeTo').value
+        },
+        schedule: {
+            amount: parseInt(document.getElementById('scheduleAmount').value),
+            unit: document.getElementById('scheduleUnit').value
+        },
+        startDate: document.getElementById('startDate').value
+    };
 
-        let plan = [];
-        let currentDate = new Date(goal.startDate + 'T00:00:00');
-        let dayCounter = 1;
+    // ... (الكود الذي يحسب الخطة يبقى كما هو)
+    // ... هنا نضع نفس منطق حساب الخطة الذي كان موجوداً
+    let plan = [];
+    // ... (انسخ والصق منطق حساب الخطة بالكامل من الكود الأصلي هنا)
+    
+    // --== بداية منطق حساب الخطة (من الكود الأصلي) ==--
+    let currentDate = new Date(goalData.startDate + 'T00:00:00');
+    let dayCounter = 1;
 
-        if (goal.quantity.unit === 'صفحة') {
-            const pagesInRange = getPagesForRange(goal.range);
-            if (pagesInRange.length === 0) {
-                alert("خطأ: لم يتم العثور على صفحات في النطاق المحدد.");
-                return;
-            }
-
-            for (let i = 0; i < pagesInRange.length; i += goal.quantity.amount) {
-                const chunk = pagesInRange.slice(i, i + goal.quantity.amount);
-                if (chunk.length === 0) continue;
-
-                const first = chunk[0];
-                const last = chunk.at(-1);
-                const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
-
-                plan.push({
-                    day: dayCounter++,
-                    date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
-                    task: taskText,
-                    completed: false
-                });
-
-                const { unit, amount } = goal.schedule;
-                if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
-                else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
-                else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
-            }
-        } else if (goal.quantity.unit === 'ربع') {
-            let rangeStartComparable, rangeEndComparable;
-
-            switch (goal.range.unit) {
-                case 'سورة': {
-                    const startSurah = quranData.surahs.find(s => s.index == goal.range.from);
-                    const endSurah = quranData.surahs.find(s => s.index == goal.range.to);
-                    rangeStartComparable = getComparableVerseValue({ index: startSurah.index, verse: 'verse_1' });
-                    rangeEndComparable = getComparableVerseValue({ index: endSurah.index, verse: `verse_${endSurah.count}` });
-                    break;
-                }
-                case 'جزء': {
-                    const startJuz = quranData.juzs.find(j => j.index == goal.range.from);
-                    const endJuz = quranData.juzs.find(j => j.index == goal.range.to);
-                    rangeStartComparable = getComparableVerseValue(startJuz.start);
-                    rangeEndComparable = getComparableVerseValue(endJuz.end);
-                    break;
-                }
-                case 'صفحة': {
-                    const pagesInRange = getPagesForRange(goal.range);
-                    if (pagesInRange.length === 0) {
-                        alert("خطأ: لم يتم العثور على صفحات في النطاق المحدد.");
-                        return;
-                    }
-                    rangeStartComparable = getComparableVerseValue(pagesInRange[0].start);
-                    rangeEndComparable = getComparableVerseValue(pagesInRange.at(-1).end);
-                    break;
-                }
-            }
-
-            const rubsInRange = quranData.rubs.filter(rub => {
-                const rubStartComparable = getComparableVerseValue(rub.start);
-                return rubStartComparable >= rangeStartComparable && rubStartComparable <= rangeEndComparable;
-            });
-
-            if (rubsInRange.length === 0) {
-                alert("خطأ: لم يتم العثور على أرباع في النطاق المحدد.");
-                return;
-            }
-
-            for (let i = 0; i < rubsInRange.length; i += goal.quantity.amount) {
-                const chunk = rubsInRange.slice(i, i + goal.quantity.amount);
-                if (!chunk || chunk.length === 0) continue;
-
-                const first = chunk[0];
-                const last = chunk.at(-1);
-                const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
-
-                plan.push({
-                    day: dayCounter++,
-                    date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
-                    task: taskText,
-                    completed: false
-                });
-
-                const { unit, amount } = goal.schedule;
-                if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
-                else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
-                else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
-            }
+    if (goalData.quantity.unit === 'صفحة') {
+        const pagesInRange = getPagesForRange(goalData.range);
+        if (pagesInRange.length === 0) {
+            alert("خطأ: لم يتم العثور على صفحات في النطاق المحدد.");
+            return;
         }
 
-        goal.plan = plan;
-        allGoals.push(goal);
-        saveGoals();
-        e.target.reset();
-        document.getElementById('startDate').valueAsDate = new Date();
-        showScreen('goalsListScreen');
-    });
+        for (let i = 0; i < pagesInRange.length; i += goalData.quantity.amount) {
+            const chunk = pagesInRange.slice(i, i + goalData.quantity.amount);
+            if (chunk.length === 0) continue;
 
+            const first = chunk[0];
+            const last = chunk.at(-1);
+            const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
+
+            plan.push({
+                day: dayCounter++,
+                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
+                task: taskText,
+                completed: false
+            });
+
+            const { unit, amount } = goalData.schedule;
+            if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
+            else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
+            else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
+        }
+    } else if (goalData.quantity.unit === 'ربع') {
+        let rangeStartComparable, rangeEndComparable;
+        // ... (باقي منطق حساب الأرباع كما هو في الكود الأصلي)
+        switch (goalData.range.unit) {
+            case 'سورة': {
+                const startSurah = quranData.surahs.find(s => s.index == goalData.range.from);
+                const endSurah = quranData.surahs.find(s => s.index == goalData.range.to);
+                rangeStartComparable = getComparableVerseValue({ index: startSurah.index, verse: 'verse_1' });
+                rangeEndComparable = getComparableVerseValue({ index: endSurah.index, verse: `verse_${endSurah.count}` });
+                break;
+            }
+            case 'جزء': {
+                const startJuz = quranData.juzs.find(j => j.index == goalData.range.from);
+                const endJuz = quranData.juzs.find(j => j.index == goalData.range.to);
+                rangeStartComparable = getComparableVerseValue(startJuz.start);
+                rangeEndComparable = getComparableVerseValue(endJuz.end);
+                break;
+            }
+            case 'صفحة': {
+                const pagesInRange = getPagesForRange(goalData.range);
+                if (pagesInRange.length === 0) {
+                    alert("خطأ: لم يتم العثور على صفحات في النطاق المحدد.");
+                    return;
+                }
+                rangeStartComparable = getComparableVerseValue(pagesInRange[0].start);
+                rangeEndComparable = getComparableVerseValue(pagesInRange.at(-1).end);
+                break;
+            }
+        }
+        const rubsInRange = quranData.rubs.filter(rub => {
+            const rubStartComparable = getComparableVerseValue(rub.start);
+            return rubStartComparable >= rangeStartComparable && rubStartComparable <= rangeEndComparable;
+        });
+        if (rubsInRange.length === 0) {
+            alert("خطأ: لم يتم العثور على أرباع في النطاق المحدد.");
+            return;
+        }
+        for (let i = 0; i < rubsInRange.length; i += goalData.quantity.amount) {
+            const chunk = rubsInRange.slice(i, i + goalData.quantity.amount);
+            if (!chunk || chunk.length === 0) continue;
+            const first = chunk[0];
+            const last = chunk.at(-1);
+            const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
+            plan.push({
+                day: dayCounter++,
+                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
+                task: taskText,
+                completed: false
+            });
+            const { unit, amount } = goalData.schedule;
+            if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
+            else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
+            else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
+        }
+    }
+    // --== نهاية منطق حساب الخطة ==--
+
+    // --== الجزء الجديد للتحقق من وضع التعديل ==--
+    if (currentlyEditingGoalId) {
+        // نحن في وضع التعديل
+        const goalIndex = allGoals.findIndex(g => g.id === currentlyEditingGoalId);
+        if (goalIndex > -1) {
+            const originalGoal = allGoals[goalIndex];
+            // دمج الإنجاز القديم مع الخطة الجديدة
+            const newPlan = plan.map((newPlanItem, index) => {
+                const oldPlanItem = originalGoal.plan[index];
+                if (oldPlanItem && oldPlanItem.task === newPlanItem.task) {
+                    // إذا لم تتغير المهمة، احتفظ بحالة الإنجاز
+                    return { ...newPlanItem, completed: oldPlanItem.completed };
+                }
+                return newPlanItem; // مهمة جديدة أو مختلفة، تبدأ غير مكتملة
+            });
+            
+            allGoals[goalIndex] = { ...allGoals[goalIndex], ...goalData, plan: newPlan };
+        }
+    } else {
+        // نحن في وضع الإضافة (الكود الأصلي)
+        const newGoal = { ...goalData, id: Date.now(), plan: plan };
+        allGoals.push(newGoal);
+    }
+    // --===================================--
+
+    saveGoals();
+    e.target.reset();
+    document.getElementById('startDate').valueAsDate = new Date();
+    currentlyEditingGoalId = null; // إعادة تعيين حالة التعديل
+    showScreen('goalsListScreen');
+});
     initializeApp();
     // تحديث أيقونة الثيم عند تغيير الوضع
 // استبدل هذا الجزء في نهاية الملف

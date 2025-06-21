@@ -154,6 +154,8 @@ body {
     display: flex;
     align-items: center;
     padding: 15px;
+    gap: 15px; 
+
 }
 
 .goal-card:hover {
@@ -372,37 +374,54 @@ body {
     border-color: var(--primary-color);
 }
 
-/* --- تعديلات زر الحذف --- */
+/* حاوية الأزرار: هي المسؤولة عن كل شيء */
+.goal-card .actions-container {
+    display: flex;
+    flex-direction: column; /* الأزرار فوق بعضها */
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* المسافة الرأسية بين الأزرار */
+    
+}
 
-/* 1. تعديل الزر الحالي ليتناسب مع الأيقونة */
-.goal-card .delete-btn {
-    flex-shrink: 0;
+/* الأزرار نفسها: لا تحتوي على أي هوامش خارجية */
+.goal-card .icon-btn {
     background: none;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    margin-left: 0; 
-    margin-right: 15px;   
-    transition: color 0.2s;
-    padding: 5px;      /* مساحة إضافية لتسهيل الضغط */
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: unset;  /* إلغاء حجم الخط الذي كان مخصصًا للإيموجي */
+    transition: all 0.2s;
+    margin: 0; /* مهم جدًا: نتأكد أنها لا تملك أي هوامش خاصة بها */
 }
 
-/* 2. الحفاظ على تأثير المرور (hover) */
-.goal-card .delete-btn:hover {
-    color: var(--danger-color);
-}
-
-/* 3. تنسيق أيقونة الحذف الجديدة */
-.goal-card .delete-btn svg {
-    width: 22px;
-    height: 22px;
+/* الأيقونة نفسها: لا تحتوي على أي هوامش إطلاقًا */
+.goal-card .icon-btn svg {
+    width: 20px;
+    height: 20px;
     stroke: currentColor;
     stroke-width: 2;
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
+    margin: 0; /* مهم جدًا: نتأكد أن الأيقونة نفسها لا تملك أي هوامش */
+}
+.goal-card .delete-btn svg {
+    stroke-width: 2.3;
+}
+
+/* تأثيرات المرور (Hover) تبقى كما هي */
+.goal-card .edit-btn:hover {
+    color: var(--primary-color);
+    background-color: var(--primary-light);
+}
+
+.goal-card .delete-btn:hover {
+    color: var(--danger-color);
+    background-color: rgba(231, 76, 60, 0.1);
 }
