@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderGoalDetails(goalId) {
+    function renderGoalDetails(goalId, { scrollToFirstIncomplete = true } = {}) {
         const goal = allGoals.find(g => g.id === parseInt(goalId));
         if (!goal) { showScreen('goalsListScreen'); return; }
 
@@ -78,6 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(itemDiv);
         });
         showScreen('goalDetailScreen');
+        if (scrollToFirstIncomplete) {
+    setTimeout(() => {
+        const firstIncomplete = document.querySelector('#planDetailContainer .plan-item:not(.completed)');
+        if (firstIncomplete) {
+            firstIncomplete.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+}
     }
 
     function populateRangeOptions(unit) {
@@ -233,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (goal) {
                 goal.plan[action.dataset.dayIndex].completed = !goal.plan[action.dataset.dayIndex].completed;
                 saveGoals();
-                renderGoalDetails(goal.id);
+                renderGoalDetails(goal.id, { scrollToFirstIncomplete: false });
             }
         }
     });
@@ -284,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const first = chunk[0];
                 const last = chunk.at(-1);
 
-                const taskText = `من ${first.start.nameAr} آية ${first.start.verse.replace('verse_', '')} إلى ${last.end.nameAr} آية ${last.end.verse.replace('verse_', '')}`;
+                const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
 
                 plan.push({
                     day: dayCounter++,
@@ -336,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const first = chunk[0];
                 const last = chunk.at(-1);
-                const taskText = `من ${first.start.nameAr} آية ${first.start.verse.replace('verse_', '')} إلى ${last.end.nameAr} آية ${last.end.verse.replace('verse_', '')}`;
+                const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
 
                 plan.push({
                     day: dayCounter++,

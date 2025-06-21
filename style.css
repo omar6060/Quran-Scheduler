@@ -47,10 +47,20 @@ body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-color); co
 #planDetailContainer { display: flex; flex-direction: column; gap: 10px; }
 .plan-item { display: flex; align-items: center; background-color: var(--surface-color); border-radius: 10px; padding: 15px; transition: background-color 0.3s; }
 .plan-item.completed { background-color: var(--primary-light); }
-.plan-item .day-marker { flex-shrink: 0; width: 40px; height: 40px; border: 2px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left: 15px; font-weight: 700; }
+.plan-item .day-marker { flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;   /* نفس ارتفاع العنصر */
+    font-weight: 700;
+    font-size: 16px;
+    margin-left: 15px;
+    display: block; /* مهم نخرج من flex عشان نتحكم في الـ line-height */ }
 .plan-item.completed .day-marker { border-color: var(--primary-color); }
 .plan-item .plan-text-content { flex-grow: 1; }
-.plan-item .plan-text-content .date { font-size: 14px; color: var(--text-secondary); }
+.plan-item .plan-text-content .date { font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; }
 .plan-item .plan-text-content .task { font-size: 16px; font-weight: 500; }
 .plan-item .complete-action { flex-shrink: 0; width: 50px; height: 50px; border: 2px solid var(--border-color); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
 .plan-item.completed .complete-action { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--bg-color); font-size: 24px; }
