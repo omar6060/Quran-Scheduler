@@ -71,9 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div id="goalsListContainer"></div>
-            <div id="noGoalsMessage" style="display: none;">
-                <h3>لا توجد أهداف حالية</h3>
-                <p>اضغط على علامة ＋ لبدء هدف جديد</p>
+        <div id="noGoalsMessage" style="display: none;">
+                <!-- == بداية الأيقونة الجديدة (أيقونة الهدف) == -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                <!-- == نهاية الأيقونة الجديدة == -->
+                <p style="font-size: 16px; color: var(--text-secondary);">لا توجد أهداف حالية!<br>اضغط على ＋ في الأعلى لإضافة هدفك الأول.</p>
             </div>
         </div>
 

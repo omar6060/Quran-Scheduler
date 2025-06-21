@@ -425,3 +425,11 @@ body {
     color: var(--danger-color);
     background-color: rgba(231, 76, 60, 0.1);
 }
+
+#noGoalsMessage svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    stroke: var(--text-secondary);
+    opacity: 0.6;
+}
