@@ -149,7 +149,8 @@ body {
     content: ' ...';
 }
 
-#goalsListContainer {
+#goalsListContainer,
+#archivedGoalsContainer {
     display: grid;
     gap: 15px;
 }
@@ -445,4 +446,36 @@ body {
 
 .goal-card .unarchive-btn svg {
     stroke-width: 2.5; /* اختر القيمة التي تريدها هنا */
+}
+
+
+/* تنسيقات تاريخ الإنجاز الفعلي */
+.plan-item .date del {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.plan-item .completion-date {
+    font-weight: 500;
+    margin-right: 5px; /* مسافة بسيطة بين التاريخين */
+}
+
+/* لون الإنجاز في الموعد أو مبكرًا */
+.plan-item .completion-date.on-time {
+    color: var(--text-secondary);
+}
+
+/* لون الإنجاز المتأخر */
+.plan-item .completion-date.late {
+    color: var(--danger-color);
+    font-weight: 700; /* تمييز إضافي */
+}
+
+
+input[type="date"] {
+    color-scheme: dark;
+}
+
+[data-theme="light"] input[type="date"] {
+    color-scheme: light;
 }

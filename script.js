@@ -262,12 +262,13 @@ function renderArchivedGoalsList() {
         const card = document.createElement('div');
         card.className = 'goal-card';
         // لا نحتاج شريط التقدم أو زر التعديل هنا
-                card.innerHTML = `
+        const completionDate = new Date(goal.completionDate).toLocaleDateString('ar-EG');
+        card.innerHTML = `
             <div class="goal-card-content" data-goal-id="${goal.id}" data-is-archived="true">
-                <h3>${goal.name} (مكتمل)</h3>
+                <h3>${goal.name}</h3>
                 <div class="details">
                     <span>${goal.type}</span>
-                    <span>${goal.plan.length} / ${goal.plan.length} يوم</span>
+                    <span style="color: var(--primary-color);">مكتمل في: ${completionDate}</span>
                 </div>
             </div>
             <div class="actions-container">
@@ -284,9 +285,6 @@ function renderArchivedGoalsList() {
     });
     showScreen('archiveScreen');
 }
-
-
-
     function renderGoalDetails(goalId, { scrollToFirstIncomplete = true } = {}) {
         const goal = allGoals.find(g => g.id === parseInt(goalId)) || archivedGoals.find(g => g.id === parseInt(goalId));
         if (!goal) {
@@ -302,10 +300,43 @@ function renderArchivedGoalsList() {
         goal.plan.forEach((item, index) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = `plan-item ${item.completed ? 'completed' : ''}`;
+                                                let dateDisplayHTML;
+
+            // الشرط الحاسم: تأكد من وجود كل البيانات الجديدة قبل استخدامها
+            if (item.completed && item.completionDate && item.plannedDate) {
+                const planned = new Date(item.plannedDate);
+                const completed = new Date(item.completionDate);
+
+                // إجراء أمان إضافي للتحقق من أن التواريخ صالحة
+                if (isNaN(planned.getTime()) || isNaN(completed.getTime())) {
+                    dateDisplayHTML = item.date; // fallback
+                } else {
+                    // تجاهل الوقت للمقارنة الدقيقة على مستوى اليوم
+                    planned.setHours(0, 0, 0, 0);
+                    completed.setHours(0, 0, 0, 0);
+
+                    const completedDateFormatted = new Date(item.completionDate).toLocaleDateString('ar-EG-u-nu-latn', { day: 'numeric', month: 'long' });
+
+                    if (completed.getTime() > planned.getTime()) {
+                        // إنجاز متأخر
+                        dateDisplayHTML = `<del>${item.date}</del> <span class="completion-date late">${completedDateFormatted}</span>`;
+                    } else if (completed.getTime() < planned.getTime()) {
+                        // إنجاز مبكر
+                        dateDisplayHTML = `<del>${item.date}</del> <span class="completion-date on-time">${completedDateFormatted}</span>`;
+                    } else {
+                        // إنجاز في نفس اليوم
+                        dateDisplayHTML = item.date;
+                    }
+                }
+            } else {
+                // الحالة الافتراضية: للمهام غير المكتملة أو الأهداف القديمة
+                dateDisplayHTML = item.date;
+            }
+
             itemDiv.innerHTML = `
                 <div class="day-marker">${item.day}</div>
                 <div class="plan-text-content">
-                    <div class="date">${item.date}</div>
+                    <div class="date">${dateDisplayHTML}</div>
                     <div class="task">${item.task}</div>
                 </div>
                 <div class="complete-action" data-goal-id="${goal.id}" data-day-index="${index}">
@@ -540,24 +571,38 @@ function renderArchivedGoalsList() {
         }
     }
     // الحالة 5: الضغط على زر إكمال اليوم
+        // الحالة 5: الضغط على زر إكمال اليوم (منطق مُحسَّن)
     else if (target.closest('.complete-action')) {
         const action = target.closest('.complete-action');
         const goalId = parseInt(action.dataset.goalId);
         const goal = allGoals.find(g => g.id === goalId);
         if (goal) {
             const dayIndex = action.dataset.dayIndex;
-            goal.plan[dayIndex].completed = !goal.plan[dayIndex].completed;
+            const planItem = goal.plan[dayIndex];
             
+            // تحديث حالة الإنجاز والتاريخ
+            planItem.completed = !planItem.completed;
+            if (planItem.completed) {
+                // سجل تاريخ الإنجاز عند الإكمال
+                planItem.completionDate = new Date().toISOString();
+            } else {
+                // امسح التاريخ عند إلغاء الإكمال
+                planItem.completionDate = null;
+            }
+
             // التحقق مما إذا كان الهدف قد اكتمل
             const isGoalComplete = goal.plan.every(p => p.completed);
             
             if (isGoalComplete) {
+                // سجل تاريخ اكتمال الهدف بالكامل
+                goal.completionDate = new Date().toISOString(); 
+                
                 // نقل الهدف للأرشيف
-                allGoals = allGoals.filter(g => g.id !== goalId); // إزالته من الأهداف النشطة
-                archivedGoals.push(goal); // إضافته للأرشيف
+                allGoals = allGoals.filter(g => g.id !== goalId);
+                archivedGoals.push(goal);
                 saveGoals();
                 alert(`اكتمل الهدف "${goal.name}" وتم نقله إلى الأرشيف!`);
-                showScreen('goalsListScreen'); // العودة للقائمة الرئيسية
+                showScreen('goalsListScreen');
             } else {
                 saveGoals();
                 renderGoalDetails(goal.id, { scrollToFirstIncomplete: false });
@@ -642,9 +687,12 @@ function renderArchivedGoalsList() {
 
             plan.push({
                 day: dayCounter++,
-                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
+                // سنخزن التاريخ المخطط له بصيغتين: للعرض وللمقارنة
+                plannedDate: currentDate.toISOString(), // صيغة قياسية للمقارنة
+                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate), // صيغة للعرض
                 task: taskText,
-                completed: false
+                completed: false,
+                completionDate: null // تاريخ الإنجاز الفعلي، فارغ مبدئيًا
             });
 
             const { unit, amount } = goalData.schedule;
@@ -697,9 +745,12 @@ function renderArchivedGoalsList() {
             const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
             plan.push({
                 day: dayCounter++,
-                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
+                // سنخزن التاريخ المخطط له بصيغتين: للعرض وللمقارنة
+                plannedDate: currentDate.toISOString(), // صيغة قياسية للمقارنة
+                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate), // صيغة للعرض
                 task: taskText,
-                completed: false
+                completed: false,
+                completionDate: null // تاريخ الإنجاز الفعلي، فارغ مبدئيًا
             });
             const { unit, amount } = goalData.schedule;
             if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
