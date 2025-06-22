@@ -12,9 +12,11 @@ function toggleTheme() {
 }
 document.addEventListener('DOMContentLoaded', () => {
     let quranData = {};
-    let allGoals = [];
-        let currentlyEditingGoalId = null; 
+    let allGoals = []; // الأهداف النشطة
+    let archivedGoals = []; // الأهداف المكتملة
+    let currentlyEditingGoalId = null; 
     const DB_NAME = 'tarteelGoalsApp_Final';
+    const ARCHIVE_DB_NAME = 'tarteelGoalsApp_Final_Archive'; // اسم جديد لمخزن الأرشيف
 
     async function fetchData(url) {
         const rawUrl = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
@@ -49,10 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadGoals() {
         allGoals = JSON.parse(localStorage.getItem(DB_NAME) || '[]');
+        archivedGoals = JSON.parse(localStorage.getItem(ARCHIVE_DB_NAME) || '[]');
     }
 
     function saveGoals() {
         localStorage.setItem(DB_NAME, JSON.stringify(allGoals));
+        localStorage.setItem(ARCHIVE_DB_NAME, JSON.stringify(archivedGoals));
     }
 
     function setupUI() {
@@ -61,13 +65,19 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="header">
                 <h1>الأهداف</h1>
                 <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="header-btn" id="showArchiveBtn" title="الأرشيف">
+                        <!-- أيقونة الأرشيف -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="8" y1="12" x2="16" y2="12"></line></svg>
                     <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
                         <!-- أيقونة الشمس الجديدة -->
                         <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                         <!-- أيقونة القمر الجديدة -->
                         <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                     </button>
-                    <button class="header-btn" data-action="add-new">＋</button>
+                    <button class="header-btn" data-action="add-new" title="إضافة هدف جديد">
+                        <!-- أيقونة الإضافة الجديدة SVG -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
                 </div>
             </div>
             <div id="goalsListContainer"></div>
@@ -81,7 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div id="newGoalScreen" class="screen">
             <div class="header">
-                <button class="header-btn back-btn" data-target="goalsListScreen">➔</button>
+                <button class="header-btn back-btn" data-target="goalsListScreen" title="رجوع">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <polyline points="15 6 21 12 15 18"></polyline>
+                    </svg>
+                </button>
                 <h1>هدف جديد</h1>
                 <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
                     <!-- أيقونة الشمس الجديدة -->
@@ -148,7 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div id="goalDetailScreen" class="screen">
             <div class="header">
-                <button class="header-btn back-btn" data-target="goalsListScreen">➔</button>
+                <button class="header-btn back-btn" data-target="goalsListScreen" title="رجوع">
+                    
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <polyline points="15 6 21 12 15 18"></polyline>
+                    </svg>
+                </button>
                 <h1>تفاصيل الهدف</h1>
                 <button class="theme-toggle" onclick="toggleTheme()" title="تبديل الوضع">
                     <!-- أيقونة الشمس الجديدة -->
@@ -164,6 +185,24 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="planDetailContainer"></div>
         </div>
     `;
+    document.querySelector('.app-container').insertAdjacentHTML('beforeend', `
+        <div id="archiveScreen" class="screen">
+            <div class="header">
+                <button class="header-btn back-btn" data-target="goalsListScreen" title="رجوع">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <polyline points="15 6 21 12 15 18"></polyline>
+                    </svg>
+                </button>
+                <h1>الأرشيف</h1>
+                <span style="width: 45px;"></span> <!-- عنصر وهمي للموازنة -->
+            </div>
+            <div id="archivedGoalsContainer"></div>
+            <div id="noArchivedGoalsMessage" style="display: none; text-align: center; color: var(--text-secondary); padding: 50px 20px; border: 2px dashed var(--border-color); border-radius: 12px;">
+                <p>لا توجد أهداف مكتملة في الأرشيف بعد.</p>
+            </div>
+        </div>
+    `);
     document.getElementById('startDate').valueAsDate = new Date();
 }
 
@@ -213,8 +252,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 }
 
+function renderArchivedGoalsList() {
+    const container = document.getElementById('archivedGoalsContainer');
+    const noGoalsMsg = document.getElementById('noArchivedGoalsMessage');
+    container.innerHTML = '';
+    noGoalsMsg.style.display = archivedGoals.length === 0 ? 'block' : 'none';
+
+    archivedGoals.forEach(goal => {
+        const card = document.createElement('div');
+        card.className = 'goal-card';
+        // لا نحتاج شريط التقدم أو زر التعديل هنا
+        card.innerHTML = `
+            <div class="goal-card-content" data-goal-id="${goal.id}" data-is-archived="true">
+                <h3>${goal.name} (مكتمل)</h3>
+                <div class="details">
+                    <span>${goal.type}</span>
+                    <span>${goal.plan.length} / ${goal.plan.length} يوم</span>
+                </div>
+            </div>
+            <div class="actions-container">
+                <button class="icon-btn delete-btn" data-goal-id="${goal.id}" data-is-archived="true" title="حذف نهائي">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    showScreen('archiveScreen');
+}
+
+
+
     function renderGoalDetails(goalId, { scrollToFirstIncomplete = true } = {}) {
-        const goal = allGoals.find(g => g.id === parseInt(goalId));
+        const goal = allGoals.find(g => g.id === parseInt(goalId)) || archivedGoals.find(g => g.id === parseInt(goalId));
         if (!goal) {
             showScreen('goalsListScreen');
             return;
@@ -379,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // الآن سنتعامل مع كل حالة على حدة بشكل أوضح
 
     // الحالة 1: الضغط على زر "إضافة جديد"
-    if (target.dataset.action === 'add-new') {
+    if (target.closest('[data-action="add-new"]')) {
         currentlyEditingGoalId = null; 
         document.getElementById('goalForm').reset();
         document.getElementById('startDate').valueAsDate = new Date();
@@ -389,9 +459,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showScreen('newGoalScreen');
     } 
     // الحالة 2: الضغط على زر "العودة"
-    else if (target.matches('.back-btn')) {
-        showScreen(target.dataset.target);
-    } 
+    else if (target.closest('.back-btn')) {
+    const backButton = target.closest('.back-btn'); 
+    showScreen(backButton.dataset.target);       
+}
     // الحالة 3: الضغط على زر التعديل
     else if (target.closest('.edit-btn')) {
         const goalId = target.closest('.edit-btn').dataset.goalId;
@@ -422,33 +493,74 @@ document.addEventListener('DOMContentLoaded', () => {
             showScreen('newGoalScreen');
         }
     } 
-    // الحالة 4: الضغط على زر الحذف
+    
+        // الحالة 4: الضغط على زر الحذف (للأهداف النشطة والمؤرشفة)
     else if (target.closest('.delete-btn')) { 
-        if (confirm("هل أنت متأكد من حذف هذا الهدف؟")) {
-            const buttonGoalId = target.closest('.delete-btn').dataset.goalId;
-            allGoals = allGoals.filter(g => g.id !== parseInt(buttonGoalId));
-            saveGoals();
-            renderGoalsList();
+        const button = target.closest('.delete-btn');
+        const goalId = parseInt(button.dataset.goalId);
+        const isArchived = button.dataset.isArchived === 'true';
+        
+        const confirmationMessage = isArchived 
+            ? "هل أنت متأكد من حذف هذا الهدف نهائياً من الأرشيف؟"
+            : "هل أنت متأكد من حذف هذا الهدف؟";
+
+        if (confirm(confirmationMessage)) {
+            if (isArchived) {
+                archivedGoals = archivedGoals.filter(g => g.id !== goalId);
+                saveGoals();
+                renderArchivedGoalsList(); // إعادة عرض الأرشيف
+            } else {
+                allGoals = allGoals.filter(g => g.id !== goalId);
+                saveGoals();
+                renderGoalsList(); // إعادة عرض القائمة الرئيسية
+            }
         }
     }
     // الحالة 5: الضغط على زر إكمال اليوم
     else if (target.closest('.complete-action')) {
         const action = target.closest('.complete-action');
-        const goal = allGoals.find(g => g.id === parseInt(action.dataset.goalId));
+        const goalId = parseInt(action.dataset.goalId);
+        const goal = allGoals.find(g => g.id === goalId);
         if (goal) {
             const dayIndex = action.dataset.dayIndex;
             goal.plan[dayIndex].completed = !goal.plan[dayIndex].completed;
-            saveGoals();
-            renderGoalDetails(goal.id, { scrollToFirstIncomplete: false });
+            
+            // التحقق مما إذا كان الهدف قد اكتمل
+            const isGoalComplete = goal.plan.every(p => p.completed);
+            
+            if (isGoalComplete) {
+                // نقل الهدف للأرشيف
+                allGoals = allGoals.filter(g => g.id !== goalId); // إزالته من الأهداف النشطة
+                archivedGoals.push(goal); // إضافته للأرشيف
+                saveGoals();
+                alert(`اكتمل الهدف "${goal.name}" وتم نقله إلى الأرشيف!`);
+                showScreen('goalsListScreen'); // العودة للقائمة الرئيسية
+            } else {
+                saveGoals();
+                renderGoalDetails(goal.id, { scrollToFirstIncomplete: false });
+            }
         }
     }
     // الحالة 6 (الأخيرة): الضغط على محتوى الهدف نفسه
+        // الضغط على زر عرض الأرشيف
+    else if (target.closest('#showArchiveBtn')) {
+        renderArchivedGoalsList();
+    }
+    // الحالة الأخيرة: الضغط على محتوى الهدف نفسه (نشط أو مؤرشف)
     else if (target.closest('.goal-card-content')) {
-        // هذا هو التصحيح الرئيسي
-        // نأخذ الـ ID مباشرة من العنصر الذي تم الضغط عليه
         const contentDiv = target.closest('.goal-card-content');
-        const goalId = contentDiv.dataset.goalId;
-        renderGoalDetails(goalId);
+        const goalId = parseInt(contentDiv.dataset.goalId);
+        const isArchived = contentDiv.dataset.isArchived === 'true';
+        
+        // البحث في المصفوفة الصحيحة
+        const goal = isArchived 
+            ? archivedGoals.find(g => g.id === goalId)
+            : allGoals.find(g => g.id === goalId);
+        
+        if (goal) {
+             // renderGoalDetails يعمل مع أي كائن هدف، لذا لا نحتاج لتعديله
+             renderGoalDetails(goal.id); 
+        }
     }
 });
 
@@ -613,6 +725,6 @@ window.toggleTheme = function() {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
-    // لم نعد بحاجة لاستدعاء updateThemeIcon()
+    
 };
 });

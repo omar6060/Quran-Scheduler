@@ -77,14 +77,22 @@ body {
     background: none;
     border: none;
     color: var(--primary-color);
-    font-size: 28px;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px; /* تعديل الحشوة لتناسب الأيقونات */
+    border-radius: 50%; /* لجعلها دائرية ومتناسقة */
+    width: 45px;      /* توحيد العرض */
+    height: 45px;     /* توحيد الارتفاع */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
 }
 
-.back-btn {
-    font-size: 24px;
+.header-btn:hover {
+    background-color: var(--primary-light);
 }
+
+
 
 /* زر تبديل الوضع */
 .theme-toggle {
