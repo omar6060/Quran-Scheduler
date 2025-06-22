@@ -424,7 +424,8 @@ body {
 }
 
 /* تأثيرات المرور (Hover) تبقى كما هي */
-.goal-card .edit-btn:hover {
+.goal-card .edit-btn:hover,
+.goal-card .unarchive-btn:hover {
     color: var(--primary-color);
     background-color: var(--primary-light);
 }
@@ -440,4 +441,8 @@ body {
     margin-bottom: 20px;
     stroke: var(--text-secondary);
     opacity: 0.6;
+}
+
+.goal-card .unarchive-btn svg {
+    stroke-width: 2.5; /* اختر القيمة التي تريدها هنا */
 }

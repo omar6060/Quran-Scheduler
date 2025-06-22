@@ -262,7 +262,7 @@ function renderArchivedGoalsList() {
         const card = document.createElement('div');
         card.className = 'goal-card';
         // لا نحتاج شريط التقدم أو زر التعديل هنا
-        card.innerHTML = `
+                card.innerHTML = `
             <div class="goal-card-content" data-goal-id="${goal.id}" data-is-archived="true">
                 <h3>${goal.name} (مكتمل)</h3>
                 <div class="details">
@@ -271,6 +271,10 @@ function renderArchivedGoalsList() {
                 </div>
             </div>
             <div class="actions-container">
+                <button class="icon-btn unarchive-btn" data-goal-id="${goal.id}" title="إعادة تفعيل الهدف">
+                    <!-- أيقونة إلغاء الأرشفة (سهم للأعلى) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </button>
                 <button class="icon-btn delete-btn" data-goal-id="${goal.id}" data-is-archived="true" title="حذف نهائي">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                 </button>
@@ -494,6 +498,25 @@ function renderArchivedGoalsList() {
         }
     } 
     
+    // الحالة: الضغط على زر إلغاء الأرشفة
+    else if (target.closest('.unarchive-btn')) {
+        const button = target.closest('.unarchive-btn');
+        const goalId = parseInt(button.dataset.goalId);
+        const goalToUnarchive = archivedGoals.find(g => g.id === goalId);
+        
+        if (goalToUnarchive) {
+            // إزالة الهدف من الأرشيف
+            archivedGoals = archivedGoals.filter(g => g.id !== goalId);
+            // إضافته مجددًا إلى قائمة الأهداف النشطة
+            allGoals.push(goalToUnarchive);
+            
+            saveGoals(); // حفظ التغييرات
+            renderArchivedGoalsList(); // تحديث شاشة الأرشيف (سيختفي منها الهدف)
+            
+            alert(`تمت استعادة الهدف "${goalToUnarchive.name}" إلى القائمة النشطة.`);
+        }
+    }
+
         // الحالة 4: الضغط على زر الحذف (للأهداف النشطة والمؤرشفة)
     else if (target.closest('.delete-btn')) { 
         const button = target.closest('.delete-btn');
