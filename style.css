@@ -158,7 +158,7 @@ body {
 .goal-card {
     background-color: var(--surface-color);
     border-radius: 12px;
-    border-left: 5px solid var(--primary-color);
+    border-right: 5px solid var(--primary-color);
     transition: background-color 0.2s ease;
     display: flex;
     align-items: center;
@@ -612,4 +612,152 @@ input[type="date"] {
         /* ثم نضيف الدفعة الصغيرة للأسفل */
         padding-top: 5px;
     }
+}
+
+
+/* ================================================= */
+/* == نظام الإشعارات ومربعات الحوار الأنيقة == */
+/* ================================================= */
+
+/* 1. نظام الإشعارات (Toast Notifications) */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    /* تعديل جذري: الحاوية تأخذ عرض الشاشة بالكامل */
+    left: 0;
+    right: 0;
+    
+    /* إضافة حشوة داخلية لمنع الإشعار من لمس حواف الشاشة */
+    padding: 0 15px;
+    box-sizing: border-box; /* مهم جدًا مع الحشوة والعرض الكامل */
+    
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    
+    /* السطر السحري الجديد: توسيط العناصر (الإشعارات) داخل الحاوية */
+    align-items: center;
+    
+    /* لمنع الحاوية الشفافة من اعتراض النقرات */
+    pointer-events: none;
+}
+
+/* 2. تعديل الإشعار نفسه */
+.toast {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    padding: 14px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-right: 5px solid var(--primary-color);
+    font-size: 15px;
+    font-weight: 500;
+    
+    /* تعديل جذري: إزالة أي قيود على العرض */
+    /* width و max-width تم حذفها بالكامل */
+
+    text-align: right;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    box-sizing: border-box;
+    white-space: normal; /* للسماح بالتقسيم فقط إذا كان النص طويلاً جدًا */
+    
+    /* إعادة تفعيل النقرات على الإشعار نفسه */
+    pointer-events: auto;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.error {
+    /* تعديل: تغيير لون الشريط الأيمن */
+    border-right-color: var(--danger-color);
+}
+
+/* 2. نظام مربع الحوار (Confirmation Modal) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none; /* لمنع التفاعل وهي مخفية */
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto; /* السماح بالتفاعل عند ظهورها */
+}
+
+.modal-content {
+    background-color: var(--surface-color);
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px; /* تعديل: زودنا العرض الأقصى */
+    text-align: right;  /* تعديل: محاذاة النص لليمين لتناسب اللغة العربية */
+    transform: scale(0.9);
+    transition: transform 0.2s ease-in-out;
+}
+
+.modal-overlay.show .modal-content {
+    transform: scale(1);
+}
+
+
+.modal-content p {
+    margin: 0 0 25px 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-direction: row-reverse; /* تعديل: السطر السحري لعكس ترتيب الأزرار */
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.modal-btn.confirm {
+    background-color: var(--danger-color);
+    color: #fff;
+}
+
+.modal-btn.confirm:hover {
+    filter: brightness(1.1);
+}
+
+.modal-btn.cancel {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.modal-btn.cancel:hover {
+    background-color: var(--border-color);
+    color: var(--text-color);
 }

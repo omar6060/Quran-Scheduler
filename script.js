@@ -57,6 +57,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 }
 
+// == دالة إظهار إشعار مؤقت (Toast) ==
+function showToast(message, type = 'success', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // لتفعيل أنيميشن الدخول
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10); // تأخير بسيط لضمان عمل الأنيميشن
+
+    // لإخفاء وإزالة الإشعار بعد فترة
+    setTimeout(() => {
+        toast.classList.remove('show');
+        // إزالة العنصر من الـ DOM بعد انتهاء أنيميشن الخروج
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+    }, duration);
+}
+
+// == دالة إظهار مربع التأكيد (Modal) وإرجاع Promise ==
+function showConfirmationModal(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirmation-modal');
+        const messageP = document.getElementById('modal-message');
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+
+        messageP.textContent = message;
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('show'), 10);
+
+        const close = (decision) => {
+            modal.classList.remove('show');
+            modal.addEventListener('transitionend', () => {
+                modal.style.display = 'none';
+                // إزالة المستمعين لمنع تراكمهم
+                confirmBtn.onclick = null;
+                cancelBtn.onclick = null;
+                resolve(decision);
+            }, { once: true });
+        };
+        
+        confirmBtn.onclick = () => close(true);
+        cancelBtn.onclick = () => close(false);
+    });
+}
+
+
     function loadGoals() {
         allGoals = JSON.parse(localStorage.getItem(DB_NAME) || '[]');
         archivedGoals = JSON.parse(localStorage.getItem(ARCHIVE_DB_NAME) || '[]');
@@ -231,6 +282,23 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
         </div>
     `);
+
+        document.body.insertAdjacentHTML('beforeend', `
+        <!-- حاوية الإشعارات المؤقتة (Toasts) -->
+        <div id="toast-container"></div>
+
+        <!-- مربع الحوار للتأكيد (Modal) -->
+        <div id="confirmation-modal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+                <p id="modal-message">هل أنت متأكد؟</p>
+                <div class="modal-actions">
+                    <button id="modal-confirm-btn" class="modal-btn confirm">نعم، متأكد</button>
+                    <button id="modal-cancel-btn" class="modal-btn cancel">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    `);
+
     document.getElementById('startDate').value = getTodayDateString();
 
     const startDateInput = document.getElementById('startDate');
@@ -570,7 +638,7 @@ function updateRangeToOptions(unit) {
         return parseInt(index) * 1000 + parseInt(verse.replace('verse_', ''));
     };
 
-    document.body.addEventListener('click', (e) => {
+    document.body.addEventListener('click', async (e) => {
     const target = e.target;
     
     // --== الجزء الذي تم تعديله ==--
@@ -637,7 +705,7 @@ function updateRangeToOptions(unit) {
             saveGoals(); // حفظ التغييرات
             renderArchivedGoalsList(); // تحديث شاشة الأرشيف (سيختفي منها الهدف)
             
-            alert(`تمت استعادة الهدف "${goalToUnarchive.name}" إلى القائمة النشطة.`);
+            showToast(`تم استعادة الهدف "${goalToUnarchive.name}" بنجاح`, 'success');
         }
     }
 
@@ -651,16 +719,19 @@ function updateRangeToOptions(unit) {
             ? "هل أنت متأكد من حذف هذا الهدف نهائياً من الأرشيف؟"
             : "هل أنت متأكد من حذف هذا الهدف؟";
 
-        if (confirm(confirmationMessage)) {
+        const confirmed = await showConfirmationModal(confirmationMessage);
+        if (confirmed) {
             if (isArchived) {
                 archivedGoals = archivedGoals.filter(g => g.id !== goalId);
-                saveGoals();
-                renderArchivedGoalsList(); // إعادة عرض الأرشيف
+                showToast('تم حذف الهدف من الأرشيف نهائياً', 'error');
             } else {
                 allGoals = allGoals.filter(g => g.id !== goalId);
-                saveGoals();
-                renderGoalsList(); // إعادة عرض القائمة الرئيسية
+                showToast('تم حذف الهدف بنجاح', 'error');
             }
+            saveGoals();
+            // إعادة عرض الشاشة المناسبة
+            if (isArchived) renderArchivedGoalsList();
+            else renderGoalsList();
         }
     }
     // الحالة 5: الضغط على زر إكمال اليوم
@@ -694,7 +765,7 @@ function updateRangeToOptions(unit) {
                 allGoals = allGoals.filter(g => g.id !== goalId);
                 archivedGoals.push(goal);
                 saveGoals();
-                alert(`اكتمل الهدف "${goal.name}" وتم نقله إلى الأرشيف!`);
+                showToast(`اكتمل الهدف "${goal.name}" وتم نقله للأرشيف!`, 'success');
                 showScreen('goalsListScreen');
             } else {
                 saveGoals();
@@ -842,7 +913,7 @@ switch (goalData.range.unit) {
 }
 
 if (!trueStartVerse || !trueEndVerse) {
-    alert("خطأ: لم يتم تحديد مدى الآيات بشكل صحيح. يرجى مراجعة المدخلات.");
+    showToast("خطأ: لم يتم تحديد مدى الآيات بشكل صحيح. يرجى مراجعة المدخلات.", 'error', 4000);
     return;
 }
 
