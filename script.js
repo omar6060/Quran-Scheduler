@@ -105,6 +105,29 @@ function showConfirmationModal(message) {
         localStorage.setItem(DB_NAME, JSON.stringify(allGoals));
         localStorage.setItem(ARCHIVE_DB_NAME, JSON.stringify(archivedGoals));
     }
+function updateDateDisplay(dateValue) {
+    const dateDisplaySpan = document.getElementById('dateDisplay');
+    // نتأكد أن العنصر موجود قبل التعامل معه
+    if (!dateDisplaySpan) return;
+
+    if (!dateValue) {
+        dateDisplaySpan.textContent = 'اختر تاريخ...';
+        return;
+    }
+    try {
+        const date = new Date(dateValue);
+        // التحقق من صحة التاريخ لتجنب عرض "Invalid Date"
+        if (isNaN(date.getTime())) {
+             dateDisplaySpan.textContent = 'تاريخ غير صالح';
+             return;
+        }
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        dateDisplaySpan.textContent = date.toLocaleDateString('ar-EG-u-nu-latn', options);
+    } catch (e) {
+        console.error("Error formatting date:", e);
+        dateDisplaySpan.textContent = dateValue; // fallback to the raw value
+    }
+}
 
     function setupUI() {
     document.querySelector('.app-container').innerHTML = `
@@ -267,7 +290,25 @@ function showConfirmationModal(message) {
     </svg>
     <!-- == نهاية الأيقونة الجديدة == -->
     <p style="font-size: 16px;">لا توجد أهداف مكتملة في الأرشيف بعد.</p>
+
 </div>
+<!--  == أضف هذا الكود بالكامل هنا == -->
+        <div class="archive-fab-container">
+            <div id="fab-menu" class="fab-menu">
+                <button class="fab-menu-item" id="fab-export-btn">
+                    <span>تصدير البيانات</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </button>
+                <button class="fab-menu-item" id="fab-import-btn">
+                    <span>استيراد البيانات</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+            </div>
+            <button id="archive-settings-fab" class="fab" title="إعدادات البيانات">
+                <!-- أيقونة الترس (Settings) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </div>
         </div>
     `);
 
@@ -287,31 +328,22 @@ function showConfirmationModal(message) {
         </div>
     `);
 
-    document.getElementById('startDate').value = getTodayDateString();
 
     const startDateInput = document.getElementById('startDate');
-    const dateDisplay = document.getElementById('dateDisplay');
+    const today = getTodayDateString();
 
-    // دالة لتحديث النص المعروض بالشكل الجميل
-    function updateDateDisplay(dateValue) {
-        if (!dateValue) {
-            dateDisplay.textContent = 'اختر تاريخ...';
-            return;
-        }
-        const date = new Date(dateValue);
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        dateDisplay.textContent = date.toLocaleDateString('ar-EG-u-nu-latn', options);
-    }
+    // ضبط القيمة الابتدائية للحقل الخفي
+    startDateInput.value = today;
+
+    // استدعاء الدالة العامة لتحديث الواجهة المرئية لأول مرة
+    updateDateDisplay(today); 
 
     // استمع لأي تغيير في قيمة حقل التاريخ الحقيقي
     startDateInput.addEventListener('change', function() {
+        // عند كل تغيير، استدعِ الدالة العامة لتحديث الواجهة
         updateDateDisplay(this.value);
     });
 
-    // ضبط القيمة الابتدائية عند تحميل الصفحة
-    const today = getTodayDateString();
-    startDateInput.value = today;
-    updateDateDisplay(today); // تحديث الواجهة لتعرض تاريخ اليوم
 }
 
 
@@ -626,37 +658,108 @@ function updateRangeToOptions(unit) {
         return parseInt(index) * 1000 + parseInt(verse.replace('verse_', ''));
     };
 
-    document.body.addEventListener('click', async (e) => {
-    const target = e.target;
-    
-    // --== الجزء الذي تم تعديله ==--
-    // الآن سنتعامل مع كل حالة على حدة بشكل أوضح
+    function exportGoals() {
+        try {
+            const dataToExport = {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                active: allGoals, // الآن يمكنها رؤية allGoals
+                archived: archivedGoals // والآن يمكنها رؤية archivedGoals
+            };
+            const jsonString = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const today = new Date().toISOString().slice(0, 10);
+            link.href = url;
+            link.download = `tarteel_goals_backup_${today}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('تم بدء تحميل ملف النسخ الاحتياطي', 'success'); // والآن يمكنها رؤية showToast
+        } catch (err) {
+            console.error('فشل التصدير:', err);
+            showToast('حدث خطأ أثناء عملية التصدير', 'error');
+        }
+    }
 
-    // الحالة 1: الضغط على زر "إضافة جديد"
+    // === دالة الاستيراد (توضع هنا أيضًا) ===
+    async function importGoals() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.style.display = 'none';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    if (!importedData || !Array.isArray(importedData.active) || !Array.isArray(importedData.archived)) {
+                        throw new Error('الملف غير صالح أو لا يحتوي على البنية المتوقعة.');
+                    }
+                    const confirmed = await showConfirmationModal('سيؤدي هذا إلى استبدال جميع أهدافك الحالية. هل أنت متأكد من المتابعة؟');
+                    if (confirmed) {
+                        allGoals = importedData.active;
+                        archivedGoals = importedData.archived;
+                        saveGoals(); // يمكنها الوصول لـ saveGoals
+                        renderGoalsList(); // و renderGoalsList
+                        showScreen('goalsListScreen'); // و showScreen
+                        showToast('تم استيراد البيانات بنجاح', 'success');
+                    }
+                } catch (error) {
+                    console.error('فشل استيراد الملف:', error);
+                    showToast(`خطأ في استيراد الملف: ${error.message}`, 'error', 5000);
+                }
+            };
+            reader.readAsText(file);
+        };
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+    }
+
+
+
+
+   // =================================================================
+// == الكود النهائي والكامل لمستمع الأحداث (مبني على الكود السليم) ==
+// =================================================================
+document.body.addEventListener('click', async (e) => {
+    const target = e.target;
+
+    // --- سلسلة الشروط الموحدة والمتصلة لجميع الأزرار ---
+    // هذا الهيكل يضمن عدم حدوث أي تعارضات
+
+    // 1. زر "إضافة جديد"
     if (target.closest('[data-action="add-new"]')) {
-        currentlyEditingGoalId = null; 
+          //console.log('Add New button clicked'); // إضافة سطر تتبع
+
+        currentlyEditingGoalId = null;
         document.getElementById('goalForm').reset();
-        document.getElementById('startDate').value = getTodayDateString();
+        const todayString = getTodayDateString();
+        document.getElementById('startDate').value = todayString;
+        updateDateDisplay(todayString);
         document.querySelector('#newGoalScreen h1').textContent = 'هدف جديد';
         document.getElementById('submitGoal').textContent = 'إنشاء الهدف';
         populateRangeOptions(document.getElementById('rangeUnit').value);
         showScreen('newGoalScreen');
     } 
-    // الحالة 2: الضغط على زر "العودة"
+    // 2. زر "العودة"
     else if (target.closest('.back-btn')) {
-    const backButton = target.closest('.back-btn'); 
-    showScreen(backButton.dataset.target);       
-}
-    // الحالة 3: الضغط على زر التعديل
+        showScreen(target.closest('.back-btn').dataset.target);
+    }
+    // 3. زر "التعديل"
     else if (target.closest('.edit-btn')) {
-        const goalId = target.closest('.edit-btn').dataset.goalId;
-        const goalToEdit = allGoals.find(g => g.id === parseInt(goalId));
+          console.log('Edit button clicked'); // إضافة سطر تتبع
+        const goalId = parseInt(target.closest('.edit-btn').dataset.goalId);
+        const goalToEdit = allGoals.find(g => g.id === goalId);
         if (goalToEdit) {
             currentlyEditingGoalId = goalToEdit.id;
-            
             document.querySelector('#newGoalScreen h1').textContent = 'تعديل الهدف';
             document.getElementById('submitGoal').textContent = 'حفظ التعديلات';
-
             document.getElementById('goalName').value = goalToEdit.name;
             document.getElementById('goalType').value = goalToEdit.type;
             document.getElementById('quantityAmount').value = goalToEdit.quantity.amount;
@@ -664,49 +767,35 @@ function updateRangeToOptions(unit) {
             document.getElementById('scheduleAmount').value = goalToEdit.schedule.amount;
             document.getElementById('scheduleUnit').value = goalToEdit.schedule.unit;
             document.getElementById('startDate').value = goalToEdit.startDate;
-            
+            updateDateDisplay(goalToEdit.startDate);
             const rangeUnitSelect = document.getElementById('rangeUnit');
             rangeUnitSelect.value = goalToEdit.range.unit;
             populateRangeOptions(goalToEdit.range.unit);
-            
             setTimeout(() => {
                 document.getElementById('rangeFrom').value = goalToEdit.range.from;
                 document.getElementById('rangeTo').value = goalToEdit.range.to;
             }, 0);
-
             showScreen('newGoalScreen');
         }
     } 
-    
-    // الحالة: الضغط على زر إلغاء الأرشفة
+    // 4. زر "إلغاء الأرشفة"
     else if (target.closest('.unarchive-btn')) {
-        const button = target.closest('.unarchive-btn');
-        const goalId = parseInt(button.dataset.goalId);
+        const goalId = parseInt(target.closest('.unarchive-btn').dataset.goalId);
         const goalToUnarchive = archivedGoals.find(g => g.id === goalId);
-        
         if (goalToUnarchive) {
-            // إزالة الهدف من الأرشيف
             archivedGoals = archivedGoals.filter(g => g.id !== goalId);
-            // إضافته مجددًا إلى قائمة الأهداف النشطة
             allGoals.push(goalToUnarchive);
-            
-            saveGoals(); // حفظ التغييرات
-            renderArchivedGoalsList(); // تحديث شاشة الأرشيف (سيختفي منها الهدف)
-            
+            saveGoals();
+            renderArchivedGoalsList();
             showToast(`تم استعادة الهدف "${goalToUnarchive.name}" بنجاح`, 'success');
         }
     }
-
-        // الحالة 4: الضغط على زر الحذف (للأهداف النشطة والمؤرشفة)
-    else if (target.closest('.delete-btn')) { 
+    // 5. زر "الحذف"
+    else if (target.closest('.delete-btn')) {
         const button = target.closest('.delete-btn');
         const goalId = parseInt(button.dataset.goalId);
         const isArchived = button.dataset.isArchived === 'true';
-        
-        const confirmationMessage = isArchived 
-            ? "هل أنت متأكد من حذف هذا الهدف نهائياً من الأرشيف؟"
-            : "هل أنت متأكد من حذف هذا الهدف؟";
-
+        const confirmationMessage = isArchived ? "هل أنت متأكد من حذف هذا الهدف نهائياً من الأرشيف؟" : "هل أنت متأكد من حذف هذا الهدف؟";
         const confirmed = await showConfirmationModal(confirmationMessage);
         if (confirmed) {
             if (isArchived) {
@@ -717,39 +806,22 @@ function updateRangeToOptions(unit) {
                 showToast('تم حذف الهدف بنجاح', 'error');
             }
             saveGoals();
-            // إعادة عرض الشاشة المناسبة
             if (isArchived) renderArchivedGoalsList();
             else renderGoalsList();
         }
     }
-    // الحالة 5: الضغط على زر إكمال اليوم
-        // الحالة 5: الضغط على زر إكمال اليوم (منطق مُحسَّن)
+    // 6. زر "إكمال اليوم"
     else if (target.closest('.complete-action')) {
         const action = target.closest('.complete-action');
         const goalId = parseInt(action.dataset.goalId);
         const goal = allGoals.find(g => g.id === goalId);
         if (goal) {
-            const dayIndex = action.dataset.dayIndex;
-            const planItem = goal.plan[dayIndex];
-            
-            // تحديث حالة الإنجاز والتاريخ
+            const planItem = goal.plan[action.dataset.dayIndex];
             planItem.completed = !planItem.completed;
-            if (planItem.completed) {
-                // سجل تاريخ الإنجاز عند الإكمال
-                planItem.completionDate = new Date().toISOString();
-            } else {
-                // امسح التاريخ عند إلغاء الإكمال
-                planItem.completionDate = null;
-            }
-
-            // التحقق مما إذا كان الهدف قد اكتمل
+            planItem.completionDate = planItem.completed ? new Date().toISOString() : null;
             const isGoalComplete = goal.plan.every(p => p.completed);
-            
             if (isGoalComplete) {
-                // سجل تاريخ اكتمال الهدف بالكامل
-                goal.completionDate = new Date().toISOString(); 
-                
-                // نقل الهدف للأرشيف
+                goal.completionDate = new Date().toISOString();
                 allGoals = allGoals.filter(g => g.id !== goalId);
                 archivedGoals.push(goal);
                 saveGoals();
@@ -761,28 +833,49 @@ function updateRangeToOptions(unit) {
             }
         }
     }
-    // الحالة 6 (الأخيرة): الضغط على محتوى الهدف نفسه
-        // الضغط على زر عرض الأرشيف
+    // 7. زر "عرض الأرشيف"
     else if (target.closest('#showArchiveBtn')) {
         renderArchivedGoalsList();
     }
-    // الحالة الأخيرة: الضغط على محتوى الهدف نفسه (نشط أو مؤرشف)
+    // 8. الضغط على محتوى الهدف نفسه
     else if (target.closest('.goal-card-content')) {
         const contentDiv = target.closest('.goal-card-content');
         const goalId = parseInt(contentDiv.dataset.goalId);
         const isArchived = contentDiv.dataset.isArchived === 'true';
-        
-        // البحث في المصفوفة الصحيحة
-        const goal = isArchived 
-            ? archivedGoals.find(g => g.id === goalId)
-            : allGoals.find(g => g.id === goalId);
-        
+        const goal = isArchived ? archivedGoals.find(g => g.id === goalId) : allGoals.find(g => g.id === goalId);
         if (goal) {
-             // renderGoalDetails يعمل مع أي كائن هدف، لذا لا نحتاج لتعديله
-             renderGoalDetails(goal.id); 
+            renderGoalDetails(goal.id);
         }
     }
+    // 9. زر الترس نفسه (الفتح والإغلاق)
+    else if (target.closest('#archive-settings-fab')) {
+        const fab = target.closest('#archive-settings-fab');
+        fab.classList.toggle('active');
+        document.getElementById('fab-menu')?.classList.toggle('active');
+    } 
+    // 10. زر التصدير
+    else if (target.closest('#fab-export-btn')) {
+        exportGoals();
+        document.getElementById('archive-settings-fab')?.classList.remove('active');
+        document.getElementById('fab-menu')?.classList.remove('active');
+    } 
+    // 11. زر الاستيراد
+    else if (target.closest('#fab-import-btn')) {
+        importGoals();
+        document.getElementById('archive-settings-fab')?.classList.remove('active');
+        document.getElementById('fab-menu')?.classList.remove('active');
+    }
+    // 12. الشرط الأخير: إغلاق القائمة عند النقر في أي مكان آخر
+else if (!target.closest('#fab-menu') && !target.closest('#archive-settings-fab')) {
+  const fabMenu = document.getElementById('fab-menu');
+  if (fabMenu && fabMenu.classList.contains('active')) {
+    document.getElementById('archive-settings-fab')?.classList.remove('active');
+    fabMenu.classList.remove('active');
+  }
+}
 });
+
+
 
     document.body.addEventListener('change', e => {
     // الحالة 1: المستخدم يغير وحدة المدى (مثلاً من سورة إلى جزء)
@@ -821,11 +914,6 @@ function updateRangeToOptions(unit) {
         startDate: document.getElementById('startDate').value
     };
 
-    // ... (الكود الذي يحسب الخطة يبقى كما هو)
-    // ... هنا نضع نفس منطق حساب الخطة الذي كان موجوداً
-    
-    // ... (انسخ والصق منطق حساب الخطة بالكامل من الكود الأصلي هنا)
-    
     // --== بداية منطق حساب الخطة (إصدار 5 - نهائي وموثوق) ==--
 
 // --- دوال مساعدة ---
@@ -1016,3 +1104,8 @@ window.toggleTheme = function() {
     
 };
 });
+
+
+
+
+

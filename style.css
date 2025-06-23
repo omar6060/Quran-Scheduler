@@ -761,3 +761,89 @@ input[type="date"] {
     background-color: var(--border-color);
     color: var(--text-color);
 }
+
+
+/* ===================================== */
+/* == نظام زر الإعدادات العائم (FAB) == */
+/* ===================================== */
+
+.archive-fab-container {
+    position: absolute; /* يجعله عائمًا بالنسبة لشاشة الأرشيف */
+    bottom: 25px;
+    left: 25px; /* على الشمال كما طلبت */
+    z-index: 100;
+}
+
+.fab {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: var(--bg-color); /* لون الأيقونة سيكون لون خلفية التطبيق */
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.fab:hover {
+    transform: scale(1.05);
+}
+
+.fab svg {
+    /* تعديل: جعل الحركة أكثر نعومة وسلاسة */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fab.active svg {
+    /* تعديل: تقليل زاوية الدوران لحركة أهدأ */
+    transform: rotate(45deg); 
+}
+
+.fab-menu {
+    position: absolute;
+    bottom: 70px; /* فوق الزر العائم مباشرة */
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    /* الحالة الافتراضية: مخفي تمامًا */
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.25s ease;
+}
+
+.fab-menu.active {
+    /* الحالة عند الفتح: يظهر بسلاسة */
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fab-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* لوضع الأيقونة على يسار النص */
+    gap: 12px;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-size: 15px;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    white-space: nowrap; /* لمنع النص من النزول لسطر جديد */
+    transition: all 0.2s ease;
+}
+
+.fab-menu-item:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
