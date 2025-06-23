@@ -437,7 +437,8 @@ body {
     background-color: rgba(231, 76, 60, 0.1);
 }
 
-#noGoalsMessage svg {
+#noGoalsMessage svg,
+#noArchivedGoalsMessage svg {
     width: 80px;
     height: 80px;
     margin-bottom: 20px;
