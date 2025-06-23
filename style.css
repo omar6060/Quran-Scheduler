@@ -1,4 +1,8 @@
-/* Dark Mode Variables (الوضع الافتراضي) */
+/* ===================================== */
+/* == Global Variables & Basic Styles == */
+/* ===================================== */
+
+/* Dark Mode Variables (Default) */
 :root {
     --bg-color: #121212;
     --surface-color: #1e1e1e;
@@ -15,10 +19,6 @@
 [data-theme="light"] {
     --bg-color: #ffffff;
     --surface-color: #f8f9fa;
-    --primary-color: #2ecc71;
-    --primary-hover: #27ae60;
-    --primary-light: rgba(46, 204, 113, 0.1);
-    --danger-color: #e74c3c;
     --text-color: #2c3e50;
     --text-secondary: #6c757d;
     --border-color: #dee2e6;
@@ -26,6 +26,8 @@
 
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -42,6 +44,10 @@ body {
     margin: auto;
 }
 
+/* ============================ */
+/* == Screen & Layout System == */
+/* ============================ */
+
 .screen {
     display: none;
     animation: fadeIn 0.3s ease;
@@ -52,13 +58,13 @@ body {
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
+
+/* ================== */
+/* == Header & Nav == */
+/* ================== */
 
 .header {
     display: flex;
@@ -78,10 +84,10 @@ body {
     border: none;
     color: var(--primary-color);
     cursor: pointer;
-    padding: 8px; /* تعديل الحشوة لتناسب الأيقونات */
-    border-radius: 50%; /* لجعلها دائرية ومتناسقة */
-    width: 45px;      /* توحيد العرض */
-    height: 45px;     /* توحيد الارتفاع */
+    padding: 8px;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -92,9 +98,6 @@ body {
     background-color: var(--primary-light);
 }
 
-
-
-/* زر تبديل الوضع */
 .theme-toggle {
     background: none;
     border: 2px solid var(--border-color);
@@ -107,7 +110,6 @@ body {
     justify-content: center;
     transition: all 0.3s ease;
     color: var(--text-color);
-    padding: 0; /* تمت الإضافة */
 }
 
 .theme-toggle:hover {
@@ -115,11 +117,10 @@ body {
     background-color: var(--primary-light);
 }
 
-/* تنسيق أيقونات SVG الاحترافية */
 .theme-toggle svg {
     width: 24px;
     height: 24px;
-    stroke: currentColor; /* استخدم stroke بدلاً من fill */
+    stroke: currentColor;
     stroke-width: 2;
     fill: none;
     stroke-linecap: round;
@@ -127,27 +128,18 @@ body {
     transition: transform 0.3s ease-in-out;
 }
 
-/* إظهار وإخفاء الأيقونة المناسبة حسب الوضع */
+/* Theme icon visibility */
 .theme-toggle .sun-icon { display: none; }
 .theme-toggle .moon-icon { display: block; }
-
 [data-theme="light"] .theme-toggle .sun-icon { display: block; }
 [data-theme="light"] .theme-toggle .moon-icon { display: none; }
 
-/* تأثير بسيط عند التبديل */
 [data-theme="dark"] .theme-toggle:hover .moon-icon { transform: rotate(15deg); }
 [data-theme="light"] .theme-toggle:hover .sun-icon { transform: rotate(15deg); }
 
-.loader {
-    text-align: center;
-    padding: 50px;
-    font-size: 18px;
-    color: var(--text-secondary);
-}
-
-.loader::after {
-    content: ' ...';
-}
+/* ================= */
+/* == Goal Cards  == */
+/* ================= */
 
 #goalsListContainer,
 #archivedGoalsContainer {
@@ -163,8 +155,7 @@ body {
     display: flex;
     align-items: center;
     padding: 15px;
-    gap: 15px; 
-
+    gap: 15px;
 }
 
 .goal-card:hover {
@@ -205,28 +196,92 @@ body {
     transition: width 0.5s ease;
 }
 
-.goal-card .delete-btn {
-    flex-shrink: 0;
+.goal-card .actions-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.goal-card .icon-btn {
     background: none;
     border: none;
     color: var(--text-secondary);
-    font-size: 22px;
     cursor: pointer;
-    margin-right: 15px;
-    transition: color 0.2s;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.goal-card .icon-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.goal-card .delete-btn svg {
+    stroke-width: 2.3;
+}
+.goal-card .unarchive-btn svg {
+    stroke-width: 2.5;
+}
+
+.goal-card .edit-btn:hover,
+.goal-card .unarchive-btn:hover {
+    color: var(--primary-color);
+    background-color: var(--primary-light);
 }
 
 .goal-card .delete-btn:hover {
     color: var(--danger-color);
+    background-color: rgba(231, 76, 60, 0.1);
 }
 
-#noGoalsMessage {
+/* ====================== */
+/* == Empty State Msgs == */
+/* ====================== */
+
+.loader {
+    text-align: center;
+    padding: 50px;
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+.loader::after {
+    content: ' ...';
+}
+
+#noGoalsMessage,
+#noArchivedGoalsMessage {
     text-align: center;
     color: var(--text-secondary);
     padding: 50px 20px;
     border: 2px dashed var(--border-color);
     border-radius: 12px;
 }
+
+#noGoalsMessage svg,
+#noArchivedGoalsMessage svg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    stroke: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* ================= */
+/* == Form Styles == */
+/* ================= */
 
 .form-group {
     margin-bottom: 20px;
@@ -265,13 +320,8 @@ body {
     gap: 10px;
 }
 
-.compound-input input {
-    flex: 1;
-}
-
-.compound-input select {
-    flex: 2;
-}
+.compound-input input { flex: 1; }
+.compound-input select { flex: 2; }
 
 #submitGoal {
     width: 100%;
@@ -291,6 +341,71 @@ body {
     background-color: var(--primary-hover);
 }
 
+/* Fix for date input's native color scheme in different themes */
+input[type="date"] { color-scheme: dark; }
+[data-theme="light"] input[type="date"] { color-scheme: light; }
+
+/* Custom styling for input[type="date"] for a consistent look */
+.date-input-overlay-wrapper {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.date-input-overlay-wrapper input[type="date"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.date-overlay {
+    position: relative;
+    z-index: 1;
+    padding: 12px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    user-select: none;
+    pointer-events: none; /* Crucial: lets clicks pass through to the real input */
+    min-height: 20px;
+}
+
+.date-input-overlay-wrapper:hover .date-overlay,
+.date-input-overlay-wrapper input[type="date"]:focus + .date-overlay {
+    border-color: var(--primary-color);
+}
+.date-input-overlay-wrapper input[type="date"]:focus + .date-overlay {
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.3);
+}
+.date-input-overlay-wrapper:hover .date-overlay svg {
+    color: var(--primary-color);
+}
+
+.date-overlay span {
+    color: var(--text-color);
+    font-size: 16px;
+    flex: 1;
+}
+
+.date-overlay svg {
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* ======================== */
+/* == Goal Detail Screen == */
+/* ======================== */
+
 #goalDetailHeader {
     text-align: center;
     padding: 15px;
@@ -299,14 +414,8 @@ body {
     margin-bottom: 20px;
 }
 
-#goalDetailHeader h2 {
-    margin: 0 0 5px 0;
-}
-
-#goalDetailHeader p {
-    margin: 0;
-    color: var(--text-secondary);
-}
+#goalDetailHeader h2 { margin: 0 0 5px 0; }
+#goalDetailHeader p { margin: 0; color: var(--text-secondary); }
 
 #planDetailContainer {
     display: flex;
@@ -338,7 +447,6 @@ body {
     font-weight: 700;
     font-size: 16px;
     margin-left: 15px;
-    display: block;
 }
 
 .plan-item.completed .day-marker {
@@ -348,13 +456,11 @@ body {
 .plan-item .plan-text-content {
     flex-grow: 1;
 }
-
 .plan-item .plan-text-content .date {
     font-size: 14px;
     color: var(--text-secondary);
     margin-bottom: 10px;
 }
-
 .plan-item .plan-text-content .task {
     font-size: 16px;
     font-weight: 500;
@@ -384,74 +490,7 @@ body {
     border-color: var(--primary-color);
 }
 
-/* حاوية الأزرار: هي المسؤولة عن كل شيء */
-.goal-card .actions-container {
-    display: flex;
-    flex-direction: column; /* الأزرار فوق بعضها */
-    align-items: center;
-    justify-content: center;
-    gap: 8px; /* المسافة الرأسية بين الأزرار */
-    
-}
-
-/* الأزرار نفسها: لا تحتوي على أي هوامش خارجية */
-.goal-card .icon-btn {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    margin: 0; /* مهم جدًا: نتأكد أنها لا تملك أي هوامش خاصة بها */
-}
-
-/* الأيقونة نفسها: لا تحتوي على أي هوامش إطلاقًا */
-.goal-card .icon-btn svg {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    margin: 0; /* مهم جدًا: نتأكد أن الأيقونة نفسها لا تملك أي هوامش */
-}
-.goal-card .delete-btn svg {
-    stroke-width: 2.3;
-}
-
-/* تأثيرات المرور (Hover) تبقى كما هي */
-.goal-card .edit-btn:hover,
-.goal-card .unarchive-btn:hover {
-    color: var(--primary-color);
-    background-color: var(--primary-light);
-}
-
-.goal-card .delete-btn:hover {
-    color: var(--danger-color);
-    background-color: rgba(231, 76, 60, 0.1);
-}
-
-#noGoalsMessage svg,
-#noArchivedGoalsMessage svg {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 20px;
-    stroke: var(--text-secondary);
-    opacity: 0.6;
-}
-
-.goal-card .unarchive-btn svg {
-    stroke-width: 2.5; /* اختر القيمة التي تريدها هنا */
-}
-
-
-/* تنسيقات تاريخ الإنجاز الفعلي */
+/* Styles for actual completion date */
 .plan-item .date del {
     color: var(--text-secondary);
     opacity: 0.7;
@@ -459,191 +498,30 @@ body {
 
 .plan-item .completion-date {
     font-weight: 500;
-    margin-right: 5px; /* مسافة بسيطة بين التاريخين */
+    margin-right: 5px;
 }
 
-/* لون الإنجاز في الموعد أو مبكرًا */
-.plan-item .completion-date.on-time {
-    color: var(--text-secondary);
-}
+.plan-item .completion-date.on-time { color: var(--text-secondary); }
+.plan-item .completion-date.late { color: var(--danger-color); font-weight: 700; }
 
-/* لون الإنجاز المتأخر */
-.plan-item .completion-date.late {
-    color: var(--danger-color);
-    font-weight: 700; /* تمييز إضافي */
-}
+/* ================================== */
+/* == Toast & Modal Dialog Systems == */
+/* ================================== */
 
-
-input[type="date"] {
-    color-scheme: dark;
-}
-
-[data-theme="light"] input[type="date"] {
-    color-scheme: light;
-}
-/* ========================================================== */
-/* == الحل الجذري والنهائي لمشكلة حقل التاريخ القابل للنقر == */
-/* ========================================================== */
-
-/* ==================================================== */
-/* الحل الصحيح لمشكلة input[type="date"] */
-/* ==================================================== */
-
-/* ==================================================== */
-/* الحل الصحيح لحقل التاريخ */
-/* ==================================================== */
-
-.date-input-overlay-wrapper {
-    position: relative;
-    display: block; /* مش inline-block */
-    width: 100%;
-}
-
-/* الحقل الحقيقي */
-.date-input-overlay-wrapper input[type="date"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    z-index: 10;
-    cursor: pointer;
-    font-size: 16px;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    outline: none;
-}
-
-/* الواجهة المرئية */
-.date-overlay {
-    position: relative;
-    z-index: 1;
-    padding: 12px;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    user-select: none;
-    pointer-events: none; /* مهم جداً */
-    min-height: 20px; /* عشان يكون له ارتفاع ثابت */
-}
-
-/* التأثيرات */
-.date-input-overlay-wrapper:hover .date-overlay {
-    border-color: var(--primary-color);
-}
-
-.date-input-overlay-wrapper:hover .date-overlay svg {
-    color: var(--primary-color);
-}
-
-.date-input-overlay-wrapper input[type="date"]:focus + .date-overlay {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.3);
-}
-
-/* النص والأيقونة */
-.date-overlay span {
-    color: var(--text-color);
-    font-family: 'Tajawal', sans-serif;
-    font-size: 16px;
-    flex: 1;
-}
-
-.date-overlay svg {
-    color: var(--text-secondary);
-    transition: color 0.2s ease;
-    flex-shrink: 0;
-}
-
-/* إضافات للتأكد من عدم تداخل العناصر */
-.date-input-overlay-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 0;
-    position: absolute;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-}
-
-/* للمتصفحات الأخرى */
-.date-input-overlay-wrapper input[type="date"]::-moz-focus-inner {
-    border: 0;
-}
-
-
-/* ======================================================== */
-/* ==   إصلاح محاذاة الخط على الموبايل فقط (الحل النهائي)  == */
-/* ======================================================== */
-@media (max-width: 800px) {
-
-    /* 1. إصلاح حقول الإدخال والاختيار في النموذج */
-    .form-group input,
-    .form-group select {
-        /*
-         * الخدعة: الـ padding الأصلي هو 12px.
-         * نزيد الـ padding العلوي إلى 14px (12+2).
-         * نقلل الـ padding السفلي إلى 10px (12-2).
-         * النتيجة: يظل ارتفاع الحقل كما هو، ولكن المحتوى يُدفع 2px للأسفل.
-        */
-        padding-top: 14px;
-        padding-bottom: 10px;
-    }
-
-    /* 2. إصلاح عرض التاريخ في حقل "وقت البداية" المخصص */
-    .date-overlay span {
-        padding-top: 2px;
-    }
-
-    /* 3. إصلاح أرقام الأيام في شاشة تفاصيل الخطة */
-    .plan-item .day-marker {
-        /* نستخدم flexbox للتوسيط المثالي أولاً */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1; /* إزالة line-height القديم */
-        
-        /* ثم نضيف الدفعة الصغيرة للأسفل */
-        padding-top: 5px;
-    }
-}
-
-
-/* ================================================= */
-/* == نظام الإشعارات ومربعات الحوار الأنيقة == */
-/* ================================================= */
-
-/* 1. نظام الإشعارات (Toast Notifications) */
 #toast-container {
     position: fixed;
     bottom: 20px;
-    /* تعديل جذري: الحاوية تأخذ عرض الشاشة بالكامل */
     left: 0;
     right: 0;
-    
-    /* إضافة حشوة داخلية لمنع الإشعار من لمس حواف الشاشة */
     padding: 0 15px;
-    box-sizing: border-box; /* مهم جدًا مع الحشوة والعرض الكامل */
-    
     z-index: 2000;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    
-    /* السطر السحري الجديد: توسيط العناصر (الإشعارات) داخل الحاوية */
     align-items: center;
-    
-    /* لمنع الحاوية الشفافة من اعتراض النقرات */
     pointer-events: none;
 }
 
-/* 2. تعديل الإشعار نفسه */
 .toast {
     background-color: var(--surface-color);
     color: var(--text-color);
@@ -653,18 +531,10 @@ input[type="date"] {
     border-right: 5px solid var(--primary-color);
     font-size: 15px;
     font-weight: 500;
-    
-    /* تعديل جذري: إزالة أي قيود على العرض */
-    /* width و max-width تم حذفها بالكامل */
-
     text-align: right;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    box-sizing: border-box;
-    white-space: normal; /* للسماح بالتقسيم فقط إذا كان النص طويلاً جدًا */
-    
-    /* إعادة تفعيل النقرات على الإشعار نفسه */
     pointer-events: auto;
 }
 
@@ -674,11 +544,9 @@ input[type="date"] {
 }
 
 .toast.error {
-    /* تعديل: تغيير لون الشريط الأيمن */
     border-right-color: var(--danger-color);
 }
 
-/* 2. نظام مربع الحوار (Confirmation Modal) */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -692,12 +560,12 @@ input[type="date"] {
     z-index: 1000;
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
-    pointer-events: none; /* لمنع التفاعل وهي مخفية */
+    pointer-events: none;
 }
 
 .modal-overlay.show {
     opacity: 1;
-    pointer-events: auto; /* السماح بالتفاعل عند ظهورها */
+    pointer-events: auto;
 }
 
 .modal-content {
@@ -705,8 +573,8 @@ input[type="date"] {
     padding: 25px;
     border-radius: 12px;
     width: 90%;
-    max-width: 400px; /* تعديل: زودنا العرض الأقصى */
-    text-align: right;  /* تعديل: محاذاة النص لليمين لتناسب اللغة العربية */
+    max-width: 400px;
+    text-align: right;
     transform: scale(0.9);
     transition: transform 0.2s ease-in-out;
 }
@@ -714,7 +582,6 @@ input[type="date"] {
 .modal-overlay.show .modal-content {
     transform: scale(1);
 }
-
 
 .modal-content p {
     margin: 0 0 25px 0;
@@ -727,7 +594,7 @@ input[type="date"] {
     display: flex;
     gap: 15px;
     justify-content: center;
-    flex-direction: row-reverse; /* تعديل: السطر السحري لعكس ترتيب الأزرار */
+    flex-direction: row-reverse; /* For RTL confirm/cancel order */
 }
 
 .modal-btn {
@@ -746,31 +613,27 @@ input[type="date"] {
     background-color: var(--danger-color);
     color: #fff;
 }
-
-.modal-btn.confirm:hover {
-    filter: brightness(1.1);
-}
+.modal-btn.confirm:hover { filter: brightness(1.1); }
 
 .modal-btn.cancel {
     background-color: transparent;
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
 }
-
 .modal-btn.cancel:hover {
     background-color: var(--border-color);
     color: var(--text-color);
 }
 
 
-/* ===================================== */
-/* == نظام زر الإعدادات العائم (FAB) == */
-/* ===================================== */
+/* ================================= */
+/* == Floating Action Button (FAB) == */
+/* ================================= */
 
 .archive-fab-container {
-    position: absolute; /* يجعله عائمًا بالنسبة لشاشة الأرشيف */
+    position: absolute;
     bottom: 25px;
-    left: 25px; /* على الشمال كما طلبت */
+    left: 25px;
     z-index: 100;
 }
 
@@ -779,7 +642,7 @@ input[type="date"] {
     height: 56px;
     border-radius: 50%;
     background-color: var(--primary-color);
-    color: var(--bg-color); /* لون الأيقونة سيكون لون خلفية التطبيق */
+    color: var(--bg-color);
     border: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     display: flex;
@@ -794,23 +657,20 @@ input[type="date"] {
 }
 
 .fab svg {
-    /* تعديل: جعل الحركة أكثر نعومة وسلاسة */
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .fab.active svg {
-    /* تعديل: تقليل زاوية الدوران لحركة أهدأ */
     transform: rotate(45deg); 
 }
 
 .fab-menu {
     position: absolute;
-    bottom: 70px; /* فوق الزر العائم مباشرة */
+    bottom: 70px;
     left: 0;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    /* الحالة الافتراضية: مخفي تمامًا */
     visibility: hidden;
     opacity: 0;
     transform: translateY(15px);
@@ -818,7 +678,6 @@ input[type="date"] {
 }
 
 .fab-menu.active {
-    /* الحالة عند الفتح: يظهر بسلاسة */
     visibility: visible;
     opacity: 1;
     transform: translateY(0);
@@ -827,7 +686,7 @@ input[type="date"] {
 .fab-menu-item {
     display: flex;
     align-items: center;
-    justify-content: flex-end; /* لوضع الأيقونة على يسار النص */
+    justify-content: flex-end;
     gap: 12px;
     background-color: var(--surface-color);
     color: var(--text-color);
@@ -838,7 +697,7 @@ input[type="date"] {
     font-size: 15px;
     font-family: 'Tajawal', sans-serif;
     cursor: pointer;
-    white-space: nowrap; /* لمنع النص من النزول لسطر جديد */
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 
@@ -846,4 +705,29 @@ input[type="date"] {
     background-color: var(--primary-light);
     border-color: var(--primary-color);
     color: var(--primary-color);
+}
+
+/* =========================== */
+/* == Mobile-Specific Fixes == */
+/* =========================== */
+
+@media (max-width: 800px) {
+    /* Fix for font vertical alignment on mobile devices */
+    .form-group input,
+    .form-group select {
+        padding-top: 14px;
+        padding-bottom: 10px;
+    }
+
+    .date-overlay span {
+        padding-top: 2px;
+    }
+
+    .plan-item .day-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1; /* Reset line-height for flex alignment */
+        padding-top: 5px; /* Nudge the text down */
+    }
 }
