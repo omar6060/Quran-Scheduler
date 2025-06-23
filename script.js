@@ -401,42 +401,83 @@ function renderArchivedGoalsList() {
     }
 
     function populateRangeOptions(unit) {
-        const fromSelect = document.getElementById('rangeFrom');
-        const toSelect = document.getElementById('rangeTo');
-        let options;
+    const fromSelect = document.getElementById('rangeFrom');
+    const toSelect = document.getElementById('rangeTo');
+    let options;
 
-        if (unit === 'سورة') {
-            options = quranData.surahs.map(s => ({ id: s.index, name: s.titleAr }));
-        } else if (unit === 'جزء') {
-            options = quranData.juzs.map(j => ({ id: j.index, name: `الجزء ${j.index} (${j.start.nameAr})` }));
-        } else { // صفحة
-            options = quranData.pages.map(p => ({ id: p.index, name: `صفحة ${p.index}` }));
-        }
-
-        fromSelect.innerHTML = '';
-        toSelect.innerHTML = '';
-
-        const fragFrom = document.createDocumentFragment();
-        const fragTo = document.createDocumentFragment();
-
-        options.forEach(opt => {
-            const optFrom = document.createElement('option');
-            optFrom.value = opt.id;
-            optFrom.textContent = `من: ${opt.name}`;
-            fragFrom.appendChild(optFrom);
-
-            const optTo = document.createElement('option');
-            optTo.value = opt.id;
-            optTo.textContent = `إلى: ${opt.name}`;
-            fragTo.appendChild(optTo);
-        });
-
-        fromSelect.appendChild(fragFrom);
-        toSelect.appendChild(fragTo);
-
-        toSelect.value = options.at(-1).id;
+    if (unit === 'سورة') {
+        options = quranData.surahs.map(s => ({ id: s.index, name: s.titleAr }));
+    } else if (unit === 'جزء') {
+        options = quranData.juzs.map(j => ({ id: j.index, name: `الجزء ${j.index} (${j.start.nameAr})` }));
+    } else { // صفحة
+        options = quranData.pages.map(p => ({ id: p.index, name: `صفحة ${p.index}` }));
     }
 
+    // مسح القائمتين قبل ملئهما
+    fromSelect.innerHTML = '';
+    toSelect.innerHTML = '';
+
+    const fragFrom = document.createDocumentFragment();
+    const fragTo = document.createDocumentFragment();
+
+    options.forEach(opt => {
+        const optFrom = document.createElement('option');
+        optFrom.value = opt.id;
+        optFrom.textContent = `من: ${opt.name}`;
+        fragFrom.appendChild(optFrom);
+
+        const optTo = document.createElement('option');
+        optTo.value = opt.id;
+        optTo.textContent = `إلى: ${opt.name}`;
+        fragTo.appendChild(optTo);
+    });
+
+    fromSelect.appendChild(fragFrom);
+    toSelect.appendChild(fragTo);
+
+    // الوضع الافتراضي: اختيار آخر عنصر في قائمة "إلى"
+    if (options.length > 0) {
+        toSelect.value = options.at(-1).id;
+    }
+}
+
+function updateRangeToOptions(unit) {
+    const fromSelect = document.getElementById('rangeFrom');
+    const toSelect = document.getElementById('rangeTo');
+    const selectedFromId = parseInt(fromSelect.value);
+
+    // حفظ القيمة الحالية لقائمة "إلى" لمحاولة الحفاظ عليها إذا كانت لا تزال صالحة
+    const currentToValue = toSelect.value;
+
+    let options;
+    if (unit === 'سورة') {
+        options = quranData.surahs.map(s => ({ id: s.index, name: s.titleAr }));
+    } else if (unit === 'جزء') {
+        options = quranData.juzs.map(j => ({ id: j.index, name: `الجزء ${j.index} (${j.start.nameAr})` }));
+    } else { // صفحة
+        options = quranData.pages.map(p => ({ id: p.index, name: `صفحة ${p.index}` }));
+    }
+
+    // فلترة الخيارات: اعرض فقط ما هو أكبر من أو يساوي اختيار "من"
+    const filteredOptions = options.filter(opt => opt.id >= selectedFromId);
+
+    toSelect.innerHTML = '';
+    const fragTo = document.createDocumentFragment();
+    filteredOptions.forEach(opt => {
+        const optTo = document.createElement('option');
+        optTo.value = opt.id;
+        optTo.textContent = `إلى: ${opt.name}`;
+        fragTo.appendChild(optTo);
+    });
+    toSelect.appendChild(fragTo);
+
+    // محاولة استعادة القيمة السابقة أو اختيار آخر عنصر كافتراضي
+    if (currentToValue && filteredOptions.some(opt => opt.id == currentToValue)) {
+        toSelect.value = currentToValue;
+    } else {
+        toSelect.value = filteredOptions.at(-1)?.id || '';
+    }
+}
     // ==========================================================
     // ==== بداية الجزء الذي تم تعديله (الدالة التالية) ====
     // ==========================================================
@@ -675,10 +716,18 @@ function renderArchivedGoalsList() {
 });
 
     document.body.addEventListener('change', e => {
-        if (e.target.id === 'rangeUnit') {
-            populateRangeOptions(e.target.value);
-        }
-    });
+    // الحالة 1: المستخدم يغير وحدة المدى (مثلاً من سورة إلى جزء)
+    if (e.target.id === 'rangeUnit') {
+        // هنا، نعيد كل شيء لوضعه الأصلي الكامل وغير المفلتر
+        populateRangeOptions(e.target.value);
+    }
+    // الحالة 2: المستخدم يغير قيمة "من" فقط
+    else if (e.target.id === 'rangeFrom') {
+        // هنا فقط، نقوم بفلترة قائمة "إلى"
+        const rangeUnit = document.getElementById('rangeUnit').value;
+        updateRangeToOptions(rangeUnit);
+    }
+});
 
     document.body.addEventListener('submit', e => {
     if (e.target.id !== 'goalForm') return;
