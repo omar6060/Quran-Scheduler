@@ -11,6 +11,14 @@ function toggleTheme() {
     localStorage.setItem('theme', newTheme);
 }
 document.addEventListener('DOMContentLoaded', () => {
+    function getTodayDateString() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     let quranData = {};
     let allGoals = []; // الأهداف النشطة
     let archivedGoals = []; // الأهداف المكتملة
@@ -153,9 +161,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         </select>
                     </div>
                 </div>
-                <div class="form-group">
+                 <div class="form-group">
                     <label for="startDate">وقت البداية</label>
-                    <input type="date" id="startDate" required>
+                    <!-- هذه هي الحاوية الجديدة التي ستأخذ التصميم -->
+                    <div class="date-input-overlay-wrapper">
+                        <!-- هذا هو حقل التاريخ الحقيقي -->
+                        <input type="date" id="startDate" required>
+                        <!-- هذا هو الـ div الجميل الذي يظهر للمستخدم -->
+                        <div class="date-overlay">
+                            <span id="dateDisplay"></span> <!-- هنا سيعرض التاريخ بالصيغة الجميلة -->
+                            <!-- أيقونة SVG بسيطة -->
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        </div>
+                    </div>
                 </div>
                 <button type="submit" id="submitGoal">إنشاء الهدف</button>
             </form>
@@ -203,7 +221,31 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
     `);
-    document.getElementById('startDate').valueAsDate = new Date();
+    document.getElementById('startDate').value = getTodayDateString();
+
+    const startDateInput = document.getElementById('startDate');
+    const dateDisplay = document.getElementById('dateDisplay');
+
+    // دالة لتحديث النص المعروض بالشكل الجميل
+    function updateDateDisplay(dateValue) {
+        if (!dateValue) {
+            dateDisplay.textContent = 'اختر تاريخ...';
+            return;
+        }
+        const date = new Date(dateValue);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        dateDisplay.textContent = date.toLocaleDateString('ar-EG-u-nu-latn', options);
+    }
+
+    // استمع لأي تغيير في قيمة حقل التاريخ الحقيقي
+    startDateInput.addEventListener('change', function() {
+        updateDateDisplay(this.value);
+    });
+
+    // ضبط القيمة الابتدائية عند تحميل الصفحة
+    const today = getTodayDateString();
+    startDateInput.value = today;
+    updateDateDisplay(today); // تحديث الواجهة لتعرض تاريخ اليوم
 }
 
 
@@ -487,7 +529,7 @@ function renderArchivedGoalsList() {
     if (target.closest('[data-action="add-new"]')) {
         currentlyEditingGoalId = null; 
         document.getElementById('goalForm').reset();
-        document.getElementById('startDate').valueAsDate = new Date();
+        document.getElementById('startDate').value = getTodayDateString();
         document.querySelector('#newGoalScreen h1').textContent = 'هدف جديد';
         document.getElementById('submitGoal').textContent = 'إنشاء الهدف';
         populateRangeOptions(document.getElementById('rangeUnit').value);
@@ -787,7 +829,7 @@ function renderArchivedGoalsList() {
 
     saveGoals();
     e.target.reset();
-    document.getElementById('startDate').valueAsDate = new Date();
+    document.getElementById('startDate').value = getTodayDateString();
     currentlyEditingGoalId = null; // إعادة تعيين حالة التعديل
     showScreen('goalsListScreen');
 });
