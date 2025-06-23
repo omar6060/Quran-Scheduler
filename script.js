@@ -26,35 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const DB_NAME = 'tarteelGoalsApp_Final';
     const ARCHIVE_DB_NAME = 'tarteelGoalsApp_Final_Archive'; // اسم جديد لمخزن الأرشيف
 
-    async function fetchData(url) {
-        const rawUrl = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
-        const response = await fetch(rawUrl);
-        if (!response.ok) {
-            throw new Error(`فشل تحميل الملف: ${url}`);
-        }
-        return await response.json();
-    }
+    
 
-    async function initializeApp() {
+    function initializeApp() {
     initTheme();
-    try {
-        const [pages, rubs, surahs, juzs] = await Promise.all([
-            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/page.json'),
-            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/rub.json'),
-            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/surah.json'),
-            fetchData('https://raw.githubusercontent.com/Mohamed-Nagdy/Quran-App-Data/main/quran_metadata/juz.json')
-        ]);
 
-        quranData = { pages, rubs, surahs, juzs };
-        setupUI();
-        loadGoals();
-        showScreen('goalsListScreen');
-    } catch (error) {
-        console.error(error);
-        // --== التعديل هنا ==--
-        // سيعرض الخطأ في الحاوية الرئيسية بدلاً من عنصر غير موجود
-        document.querySelector('.app-container').innerHTML = `<p style="color:var(--danger-color); padding: 50px 20px; text-align: center; font-size: 18px;">خطأ في تحميل البيانات.<br>يرجى التأكد من اتصالك بالإنترنت وتحديث الصفحة.</p>`;
-    }
+    // البيانات الآن متاحة مباشرة من المتغيرات التي حملناها
+    quranData = { 
+        pages: quranPagesData, 
+        rubs: quranRubsData, 
+        surahs: quranSurahsData, 
+        juzs: quranJuzsData 
+    };
+
+    // باقي الكود كما هو، بدون أي تغيير
+    setupUI();
+    loadGoals();
+    showScreen('goalsListScreen');
 }
 
 // == دالة إظهار إشعار مؤقت (Toast) ==
