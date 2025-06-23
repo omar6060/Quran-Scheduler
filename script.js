@@ -705,102 +705,156 @@ function renderArchivedGoalsList() {
 
     // ... (الكود الذي يحسب الخطة يبقى كما هو)
     // ... هنا نضع نفس منطق حساب الخطة الذي كان موجوداً
-    let plan = [];
+    
     // ... (انسخ والصق منطق حساب الخطة بالكامل من الكود الأصلي هنا)
     
-    // --== بداية منطق حساب الخطة (من الكود الأصلي) ==--
-    let currentDate = new Date(goalData.startDate + 'T00:00:00');
-    let dayCounter = 1;
+    // --== بداية منطق حساب الخطة (إصدار 5 - نهائي وموثوق) ==--
 
-    if (goalData.quantity.unit === 'صفحة') {
-        const pagesInRange = getPagesForRange(goalData.range);
-        if (pagesInRange.length === 0) {
-            alert("خطأ: لم يتم العثور على صفحات في النطاق المحدد.");
-            return;
-        }
+// --- دوال مساعدة ---
+const getComparableVerse = (sura, aya) => {
+    return parseInt(sura) * 10000 + parseInt(aya);
+};
 
-        for (let i = 0; i < pagesInRange.length; i += goalData.quantity.amount) {
-            const chunk = pagesInRange.slice(i, i + goalData.quantity.amount);
-            if (chunk.length === 0) continue;
+const getVerseDetailsFromComparable = (comparable) => {
+    if (!comparable || !quranData || !quranData.surahs) return null;
+    const suraIndex = Math.floor(comparable / 10000);
+    const ayaIndex = comparable % 10000;
+    const sura = quranData.surahs.find(s => s.index == suraIndex);
+    return {
+        suraIndex: suraIndex,
+        suraName: sura ? sura.titleAr : "غير معروف",
+        aya: ayaIndex,
+        suraAyaCount: sura ? sura.count : 0
+    };
+};
 
-            const first = chunk[0];
-            const last = chunk.at(-1);
-            const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
-
-            plan.push({
-                day: dayCounter++,
-                // سنخزن التاريخ المخطط له بصيغتين: للعرض وللمقارنة
-                plannedDate: currentDate.toISOString(), // صيغة قياسية للمقارنة
-                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate), // صيغة للعرض
-                task: taskText,
-                completed: false,
-                completionDate: null // تاريخ الإنجاز الفعلي، فارغ مبدئيًا
-            });
-
-            const { unit, amount } = goalData.schedule;
-            if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
-            else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
-            else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
-        }
-    } else if (goalData.quantity.unit === 'ربع') {
-        let rangeStartComparable, rangeEndComparable;
-        // ... (باقي منطق حساب الأرباع كما هو في الكود الأصلي)
-        switch (goalData.range.unit) {
-            case 'سورة': {
-                const startSurah = quranData.surahs.find(s => s.index == goalData.range.from);
-                const endSurah = quranData.surahs.find(s => s.index == goalData.range.to);
-                rangeStartComparable = getComparableVerseValue({ index: startSurah.index, verse: 'verse_1' });
-                rangeEndComparable = getComparableVerseValue({ index: endSurah.index, verse: `verse_${endSurah.count}` });
-                break;
-            }
-            case 'جزء': {
-                const startJuz = quranData.juzs.find(j => j.index == goalData.range.from);
-                const endJuz = quranData.juzs.find(j => j.index == goalData.range.to);
-                rangeStartComparable = getComparableVerseValue(startJuz.start);
-                rangeEndComparable = getComparableVerseValue(endJuz.end);
-                break;
-            }
-            case 'صفحة': {
-                const pagesInRange = getPagesForRange(goalData.range);
-                if (pagesInRange.length === 0) {
-                    alert("خطأ: لم يتم العثور على صفحات في النطاق المحدد.");
-                    return;
-                }
-                rangeStartComparable = getComparableVerseValue(pagesInRange[0].start);
-                rangeEndComparable = getComparableVerseValue(pagesInRange.at(-1).end);
-                break;
-            }
-        }
-        const rubsInRange = quranData.rubs.filter(rub => {
-            const rubStartComparable = getComparableVerseValue(rub.start);
-            return rubStartComparable >= rangeStartComparable && rubStartComparable <= rangeEndComparable;
-        });
-        if (rubsInRange.length === 0) {
-            alert("خطأ: لم يتم العثور على أرباع في النطاق المحدد.");
-            return;
-        }
-        for (let i = 0; i < rubsInRange.length; i += goalData.quantity.amount) {
-            const chunk = rubsInRange.slice(i, i + goalData.quantity.amount);
-            if (!chunk || chunk.length === 0) continue;
-            const first = chunk[0];
-            const last = chunk.at(-1);
-            const taskText = `${first.start.nameAr} ${first.start.verse.replace('verse_', '')} - ${last.end.nameAr} ${last.end.verse.replace('verse_', '')}`;
-            plan.push({
-                day: dayCounter++,
-                // سنخزن التاريخ المخطط له بصيغتين: للعرض وللمقارنة
-                plannedDate: currentDate.toISOString(), // صيغة قياسية للمقارنة
-                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate), // صيغة للعرض
-                task: taskText,
-                completed: false,
-                completionDate: null // تاريخ الإنجاز الفعلي، فارغ مبدئيًا
-            });
-            const { unit, amount } = goalData.schedule;
-            if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
-            else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
-            else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
+// دالة مساعدة جديدة وموثوقة للحصول على الآية التالية
+const getNextVerse = (comparable) => {
+    const details = getVerseDetailsFromComparable(comparable);
+    if (!details) return comparable + 1; // Fallback
+    
+    // إذا لم نكن في نهاية السورة، فقط أضف 1
+    if (details.aya < details.suraAyaCount) {
+        return comparable + 1;
+    } 
+    // إذا كنا في نهاية السورة، ابحث عن السورة التالية
+    else {
+        const nextSura = quranData.surahs.find(s => s.index == details.suraIndex + 1);
+        if (nextSura) {
+            return getComparableVerse(nextSura.index, 1);
+        } else {
+            return comparable; // نهاية القرآن
         }
     }
-    // --== نهاية منطق حساب الخطة ==--
+};
+
+// --- الدالة الرئيسية الجديدة لحساب الخطة ---
+let plan = [];
+let currentDate = new Date(goalData.startDate + 'T00:00:00');
+let dayCounter = 1;
+
+// 1. تحديد البداية والنهاية الفعلية للمدى (بالآيات) - (هذا الجزء صحيح ولم يتغير)
+let trueStartVerse, trueEndVerse;
+switch (goalData.range.unit) {
+    case 'سورة': {
+        const startSurah = quranData.surahs.find(s => s.index == goalData.range.from);
+        const endSurah = quranData.surahs.find(s => s.index == goalData.range.to);
+        trueStartVerse = getComparableVerse(startSurah.index, 1);
+        trueEndVerse = getComparableVerse(endSurah.index, endSurah.count);
+        break;
+    }
+    case 'جزء': {
+        const startJuz = quranData.juzs.find(j => j.index == goalData.range.from);
+        const endJuz = quranData.juzs.find(j => j.index == goalData.range.to);
+        trueStartVerse = getComparableVerse(startJuz.start.index, startJuz.start.verse.replace('verse_', ''));
+        trueEndVerse = getComparableVerse(endJuz.end.index, endJuz.end.verse.replace('verse_', ''));
+        break;
+    }
+    case 'صفحة': {
+        const pagesInRange = getPagesForRange(goalData.range);
+        if (pagesInRange.length > 0) {
+            const firstPage = pagesInRange[0];
+            const lastPage = pagesInRange.at(-1);
+            trueStartVerse = getComparableVerse(firstPage.start.index, firstPage.start.verse.replace('verse_', ''));
+            trueEndVerse = getComparableVerse(lastPage.end.index, lastPage.end.verse.replace('verse_', ''));
+        }
+        break;
+    }
+}
+
+if (!trueStartVerse || !trueEndVerse) {
+    alert("خطأ: لم يتم تحديد مدى الآيات بشكل صحيح. يرجى مراجعة المدخلات.");
+    return;
+}
+
+// 2. تجميع كل "نقاط التوقف" ضمن المدى المطلوب (مرة واحدة فقط)
+const sourceStops = (goalData.quantity.unit === 'ربع') ? quranData.rubs : quranData.pages;
+let stopsInRange = sourceStops
+    .map(stop => getComparableVerse(stop.end.index, stop.end.verse.replace('verse_', '')))
+    .filter(verse => verse >= trueStartVerse && verse <= trueEndVerse)
+    .sort((a, b) => a - b);
+    
+// ضمان وجود نقطة توقف عند النهاية الفعلية للمدى إذا لم تكن موجودة
+if (stopsInRange.length === 0 || stopsInRange.at(-1) < trueEndVerse) {
+    stopsInRange.push(trueEndVerse);
+}
+// إزالة أي تكرار قد يحدث
+stopsInRange = [...new Set(stopsInRange)];
+
+
+// 3. بناء الخطة باستخدام حلقة بسيطة وموثوقة
+let currentTaskStart = trueStartVerse;
+for (let i = 0; i < stopsInRange.length; i += goalData.quantity.amount) {
+    
+    // تحديد نهاية المهمة الحالية
+    const targetStopIndex = i + goalData.quantity.amount - 1;
+    let taskEnd = (targetStopIndex < stopsInRange.length) 
+        ? stopsInRange[targetStopIndex] 
+        : trueEndVerse;
+
+    // التأكد من أن المهمة الأخيرة تنتهي بالضبط عند نهاية المدى
+    if (taskEnd > trueEndVerse || i + goalData.quantity.amount >= stopsInRange.length) {
+        taskEnd = trueEndVerse;
+    }
+    
+    // إنشاء نص المهمة
+    const startDetails = getVerseDetailsFromComparable(currentTaskStart);
+    const endDetails = getVerseDetailsFromComparable(taskEnd);
+    if (!startDetails || !endDetails) break; // خروج آمن
+
+    let taskText;
+    if (startDetails.suraName === endDetails.suraName) {
+        taskText = (startDetails.aya === endDetails.aya)
+            ? `${startDetails.suraName} ${startDetails.aya}`
+            : `${startDetails.suraName} ${startDetails.aya} - ${endDetails.aya}`;
+    } else {
+        taskText = `${startDetails.suraName} ${startDetails.aya} - ${endDetails.suraName} ${endDetails.aya}`;
+    }
+
+    // إضافة المهمة إلى الخطة
+    plan.push({
+        day: dayCounter++,
+        plannedDate: currentDate.toISOString(),
+        date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
+        task: taskText,
+        completed: false,
+        completionDate: null
+    });
+    
+    // تحديث تاريخ المهمة القادمة
+    const { unit, amount } = goalData.schedule;
+    if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
+    else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
+    else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
+    
+    // إذا كانت هذه المهمة قد وصلت لنهاية المدى، نتوقف
+    if (taskEnd >= trueEndVerse) break;
+
+    // تحديث بداية المهمة القادمة لتكون الآية التي تلي نهاية المهمة الحالية
+    currentTaskStart = getNextVerse(taskEnd);
+}
+
+// --== نهاية منطق حساب الخطة ==--
 
     // --== الجزء الجديد للتحقق من وضع التعديل ==--
     if (currentlyEditingGoalId) {
