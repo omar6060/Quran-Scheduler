@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                  <div class="form-group">
-                    <label for="startDate">وقت البداية</label>
+                    <span class="form-group-label">وقت البداية</span>
                     <!-- هذه هي الحاوية الجديدة التي ستأخذ التصميم -->
                     <div class="date-input-overlay-wrapper">
                         <!-- هذا هو حقل التاريخ الحقيقي -->
