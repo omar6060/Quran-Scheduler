@@ -1,21 +1,29 @@
 // --- THEME MANAGEMENT ---
 
-/**
- * Initializes the theme based on localStorage or defaults to 'dark'.
+/*
+ * Initializes the theme and updates the meta theme-color.
  */
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // السطر الجديد: تحديث لون الشريط عند أول تحميل
+    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-color');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColor.trim());
 }
 
 /**
- * Toggles the theme between 'light' and 'dark' and saves the choice.
+ * Toggles the theme and dynamically updates the meta theme-color.
  */
 window.toggleTheme = function() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+
+    // السطر الجديد: تحديث لون الشريط فورًا عند التبديل
+    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-color');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColor.trim());
 };
 
 // --- MAIN SCRIPT ---
@@ -883,3 +891,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- APPLICATION START ---
     initializeApp();
 });
+
+
+// --- PWA Service Worker Registration ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // استخدمنا مسار نسبي هنا
+    navigator.serviceWorker.register('sw.js') 
+      .then(registration => {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      })
+      .catch(err => {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+  });
+}
