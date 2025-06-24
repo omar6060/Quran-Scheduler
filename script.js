@@ -1,17 +1,5 @@
 // --- THEME MANAGEMENT ---
 
-/*
- * Initializes the theme and updates the meta theme-color.
- */
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-
-    // السطر الجديد: تحديث لون الشريط عند أول تحميل
-    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-color');
-    document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColor.trim());
-}
-
 /**
  * Toggles the theme and dynamically updates the meta theme-color.
  */
@@ -891,7 +879,6 @@ function initializeApp() {
         initialLoader.remove();
     }
 
-    initTheme();
     
     quranData = { pages: quranPagesData, rubs: quranRubsData, surahs: quranSurahsData, juzs: quranJuzsData };
 

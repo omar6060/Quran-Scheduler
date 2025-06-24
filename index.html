@@ -4,20 +4,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أهداف القرآن</title>
+    <title>Quran Scheduler</title>
     
-     <!-- PWA & Theme -->
+    <!-- ==================== الحل النهائي للوميض ==================== -->
+    <style>
+      /* 1. تعريف الألوان الأساسية مباشرة هنا */
+      :root {
+        --bg-color: #121212;
+        --text-color: #e0e0e0;
+      }
+      [data-theme="light"] {
+        --bg-color: #f8f9fa;
+        --text-color: #2c3e50;
+      }
+      /* 2. تطبيق الألوان الأساسية على الصفحة فورًا */
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: 'Tajawal', sans-serif;
+        margin: 0;
+        padding: 15px;
+      }
+    </style>
+
+    <script>
+      // 3. سكريبت تحديد الثيم الفوري
+      (function() {
+        try {
+          var theme = localStorage.getItem('theme') || 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
+    <!-- ========================================================== -->
+
+    <!-- PWA & Theme Meta -->
     <meta name="theme-color" content="#121212">
+    <meta name="description" content="تطبيق لتنظيم وجدولة أوراد القرآن الكريم ومتابعة إنجازها بسهولة.">
     <link rel="manifest" href="manifest.json">
 
-    <!-- Google Fonts Links -->
+    <!-- Google Fonts Links (مع التحسينات) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- Stylesheet -->
-    <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="style.css"></noscript>
+    <!-- الربط بملف الأنماط الخارجي (بالطريقة العادية الآن) -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 

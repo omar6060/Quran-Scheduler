@@ -4,22 +4,23 @@
 
 /* Dark Mode Variables (Default) */
 :root {
-    --bg-color: #121212;
+    /* --bg-color و --text-color موجودان الآن في HTML */
     --surface-color: #1e1e1e;
     --primary-color: #2ecc71;
     --primary-hover: #27ae60;
     --primary-light: rgba(46, 204, 113, 0.15);
     --danger-color: #e74c3c;
-    --text-color: #e0e0e0;
     --text-secondary: #a0a0a0;
     --border-color: #333;
 }
 
 /* Light Mode Variables */
 [data-theme="light"] {
-    --bg-color: #f8f9fa;
-    --surface-color: #ffffff;
-    --text-color: #2c3e50;
+    --surface-color: #ffffff; /* ملاحظة: لقد صححت هذا اللون ليناسب الوضع الفاتح */
+    --primary-color: #2ecc71; /* يمكنك ترك هذا إذا كان اللون الأخضر ثابتًا */
+    --primary-hover: #27ae60; /* يمكنك ترك هذا أيضًا */
+    --primary-light: rgba(46, 204, 113, 0.1);
+    --danger-color: #e74c3c;
     --text-secondary: #6c757d;
     --border-color: #dee2e6;
 }
@@ -28,15 +29,6 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-}
-
-body {
-    font-family: 'Tajawal', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    padding: 15px;
-    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
