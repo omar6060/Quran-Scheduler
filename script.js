@@ -882,26 +882,30 @@ function calculatePlan(goalData) {
     });
     
     /**
-     * Initializes the entire application.
-     */
-    function initializeApp() {
-        initTheme();
-        
-        // Data is now globally available from the script tags
-        quranData = { pages: quranPagesData, rubs: quranRubsData, surahs: quranSurahsData, juzs: quranJuzsData };
-
-        setupUI();
-        loadGoals();
-
-        // Setup the custom date input
-        const startDateInput = document.getElementById('startDate');
-        const today = getTodayDateString();
-        startDateInput.value = today;
-        updateDateDisplay(today);
-        startDateInput.addEventListener('change', function() { updateDateDisplay(this.value); });
-
-        showScreen('goalsListScreen');
+ * Initializes the entire application.
+ */
+function initializeApp() {
+    // الخطوة الجديدة: حذف شاشة التحميل الأولية
+    const initialLoader = document.getElementById('initial-loading-screen');
+    if (initialLoader) {
+        initialLoader.remove();
     }
+
+    initTheme();
+    
+    quranData = { pages: quranPagesData, rubs: quranRubsData, surahs: quranSurahsData, juzs: quranJuzsData };
+
+    setupUI();
+    loadGoals();
+
+    const startDateInput = document.getElementById('startDate');
+    const today = getTodayDateString();
+    startDateInput.value = today;
+    updateDateDisplay(today);
+    startDateInput.addEventListener('change', function() { updateDateDisplay(this.value); });
+
+    showScreen('goalsListScreen');
+}
 
     // --- APPLICATION START ---
     initializeApp();

@@ -1,9 +1,7 @@
-// اسم الكاش الخاص بالتطبيق. غيّره عند تحديث أي ملف من ملفات التطبيق
-const CACHE_NAME = 'quran-scheduler-v1';
+const CACHE_NAME = 'quran-scheduler-v3'; // **مهم جدًا: قم بزيادة الرقم مع كل تحديث**
 
-// قائمة الملفات التي سيتم تخزينها في الكاش
 const URLS_TO_CACHE = [
-  '.', // هذا يعني index.html
+  '/',
   'index.html',
   'style.css',
   'script.js',
@@ -13,23 +11,22 @@ const URLS_TO_CACHE = [
   'data/quran_juzs.js',
   'data/quran_pages.js',
   'data/quran_rubs.js',
-  'data/quran_surahs.js',
-  // رابط خط جوجل مهم جدًا لتجنب أخطاء الأوفلاين
-  'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap'
+  'data/quran_surahs.js'
+  // ملاحظة: لا نضع رابط خط جوجل هنا لأنه قد يتغير ويسبب مشاكل في الكاش
 ];
 
-// 1. تثبيت الـ Service Worker
+// التثبيت: تخزين كل الملفات الأساسية
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
         return cache.addAll(URLS_TO_CACHE);
       })
+      .then(() => self.skipWaiting()) // تفعيل الـ SW الجديد فورًا
   );
 });
 
-// 2. تفعيل الـ Service Worker وحذف أي كاش قديم
+// التفعيل: حذف أي كاش قديم
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -41,22 +38,22 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // السيطرة على الصفحات المفتوحة فورًا
   );
 });
 
-// 3. اعتراض طلبات الشبكة وإرجاع نسخة من الكاش إذا كانت متاحة
+// اعتراض الطلبات: استراتيجية "الكاش أولاً"
 self.addEventListener('fetch', (event) => {
+  // لا نطبق الكاش على طلبات جوجل فونتس
+  if (event.request.url.indexOf('fonts.googleapis.com') > -1 || event.request.url.indexOf('fonts.gstatic.com') > -1) {
+    return; // دع الطلب يذهب إلى الشبكة كالمعتاد
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // إذا وجدنا نسخة في الكاش، نرجعها
-        if (response) {
-          return response;
-        }
-        // وإلا، نطلبها من الشبكة
-        return fetch(event.request);
-      }
-    )
+        // إذا وجدنا نسخة في الكاش، نرجعها. وإلا، نطلبها من الشبكة.
+        return response || fetch(event.request);
+      })
   );
 });

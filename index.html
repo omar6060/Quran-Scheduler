@@ -1,3 +1,4 @@
+<!-- The Whole Project Depends on AI Generated Code -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -15,25 +16,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 
     <!-- Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="style.css"></noscript>
 </head>
 <body>
 
     <div class="app-container">
         <!-- سيتم ملء هذا الجزء بواسطة الجافاسكريبت عند بدء تشغيل التطبيق -->
+
+        <!-- ======== واجهة التحميل الأولية ======== -->
+        <div id="initial-loading-screen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; color: var(--text-secondary); opacity: 0.8;">
+            <svg width="60" height="60" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+                <circle cx="50" cy="50" r="32" stroke-width="8" stroke="var(--primary-color)" stroke-dasharray="50.26548245743669 50.26548245743669" fill="none" stroke-linecap="round">
+                    <animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" keyTimes="0;1" values="0 50 50;360 50 50"></animateTransform>
+                </circle>
+            </svg>
+            <p style="margin-top: 20px; font-size: 16px;">جاري تحميل التطبيق...</p>
+        </div>
+        <!-- ==================================== -->
     </div>
 
     <!-- 
       All Quran data is sourced from:
       https://github.com/Mohamed-Nagdy/Quran-App-Data/tree/main 
     -->
-    <script src="data/quran_surahs.js"></script>
-    <script src="data/quran_pages.js"></script>
-    <script src="data/quran_rubs.js"></script>
-    <script src="data/quran_juzs.js"></script>
+    <script src="data/quran_surahs.js" defer></script>
+    <script src="data/quran_pages.js" defer></script>
+    <script src="data/quran_rubs.js" defer></script>
+    <script src="data/quran_juzs.js" defer></script>
     
     <!-- Main Application Script -->
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 
 </body>
 </html>
