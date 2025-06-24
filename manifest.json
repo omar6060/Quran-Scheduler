@@ -3,7 +3,7 @@
   "short_name": "Quran Scheduler",
   "description": "تطبيق لتنظيم وجدولة أوراد القرآن الكريم ومتابعة إنجازها.",
   "id": "/?homescreen=1",
-  "start_url": "/",
+  "start_url": "https://omarmohamed2004.github.io/Quran-Scheduler/",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#121212",
