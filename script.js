@@ -534,147 +534,162 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- PLAN CALCULATION LOGIC ---
+    /**
+ * Calculates the entire reading/memorization plan based on user inputs.
+ * @param {object} goalData - The user-defined goal settings.
+ * @returns {Array|null} An array of plan items, or null if calculation fails.
+ */
+function calculatePlan(goalData) {
 
-    // Plan calculation logic is complex and relies on Quran data structure.
-    // It determines the start/end verses and divides the range into tasks.
-    function calculatePlan(goalData) {
+    // --- Helper functions for plan calculation (Now robust) ---
+    // We use a large multiplier to avoid conflicts. Sura * 10000 + Aya
+    const MULTIPLIER = 10000;
+
+    const getComparableVerseValue = ({ index, verse }) => {
+        return parseInt(index) * MULTIPLIER + parseInt(verse.replace('verse_', ''));
+    };
+
+    const getVerseDetailsFromComparable = (comparable) => {
+        if (!comparable || !quranData || !quranData.surahs || quranData.surahs.length === 0) return null;
         
-        // --- Helper functions for plan calculation ---
-        const getVerseDetailsFromComparable = (comparable) => {
-            if (!comparable || !quranData || !quranData.surahs) return null;
-            const suraIndex = Math.floor(comparable / 10000);
-            const ayaIndex = comparable % 10000;
-            const sura = quranData.surahs.find(s => s.index == suraIndex);
-            return { suraIndex, suraName: sura?.titleAr, aya: ayaIndex, suraAyaCount: sura?.count };
-        };
+        const suraIndex = Math.floor(comparable / MULTIPLIER);
+        const ayaIndex = comparable % MULTIPLIER;
 
-        const getNextVerse = (comparable) => {
-            const details = getVerseDetailsFromComparable(comparable);
-            if (!details) return comparable + 1; // Fallback
-            if (details.aya < details.suraAyaCount) {
-                return comparable + 1;
-            } else {
-                const nextSura = quranData.surahs.find(s => s.index == details.suraIndex + 1);
-                return nextSura ? getComparableVerseValue({ index: nextSura.index, verse: '1' }) : comparable;
-            }
-        };
-
-        const getPagesForRange = (range) => {
-            let startPage, endPage;
-            if (range.unit === 'صفحة') {
-                startPage = parseInt(range.from);
-                endPage = parseInt(range.to);
-            } else if (range.unit === 'جزء') {
-                const startJuz = quranData.juzs.find(j => j.index == range.from);
-                const endJuz = quranData.juzs.find(j => j.index == range.to);
-                if (!startJuz || !endJuz) return [];
-                const startPageObj = quranData.pages.find(p => getComparableVerseValue(p.start) <= getComparableVerseValue(startJuz.start) && getComparableVerseValue(startJuz.start) <= getComparableVerseValue(p.end));
-                const endPageObj = quranData.pages.find(p => getComparableVerseValue(p.start) <= getComparableVerseValue(endJuz.end) && getComparableVerseValue(endJuz.end) <= getComparableVerseValue(p.end));
-                startPage = parseInt(startPageObj?.index);
-                endPage = parseInt(endPageObj?.index);
-            } else { // 'سورة'
-                const startSurah = quranData.surahs.find(s => s.index == range.from);
-                const endSurah = quranData.surahs.find(s => s.index == range.to);
-                if (!startSurah || !endSurah) return [];
-                startPage = parseInt(startSurah.page);
-                const endPageObj = quranData.pages.find(p => p.end.index == endSurah.index && p.end.verse === `verse_${endSurah.count}`);
-                endPage = endPageObj ? parseInt(endPageObj.index) : Math.max(...quranData.pages.filter(p => p.end.index == endSurah.index).map(p => parseInt(p.index)));
-            }
-            if (isNaN(startPage) || isNaN(endPage) || startPage > endPage) return [];
-            return quranData.pages.filter(p => parseInt(p.index) >= startPage && parseInt(p.index) <= endPage);
-        };
-
-        // --- Main plan calculation starts here ---
-        let plan = [];
-        let currentDate = new Date(goalData.startDate + 'T00:00:00');
-        let dayCounter = 1;
-
-        // 1. Determine the true start and end verse for the entire range.
-        let trueStartVerse, trueEndVerse;
-        switch (goalData.range.unit) {
-            case 'سورة': {
-                const startSurah = quranData.surahs.find(s => s.index == goalData.range.from);
-                const endSurah = quranData.surahs.find(s => s.index == goalData.range.to);
-                trueStartVerse = getComparableVerseValue({ index: startSurah.index, verse: '1' });
-                trueEndVerse = getComparableVerseValue({ index: endSurah.index, verse: `${endSurah.count}` });
-                break;
-            }
-            case 'جزء': {
-                const startJuz = quranData.juzs.find(j => j.index == goalData.range.from);
-                const endJuz = quranData.juzs.find(j => j.index == goalData.range.to);
-                trueStartVerse = getComparableVerseValue(startJuz.start);
-                trueEndVerse = getComparableVerseValue(endJuz.end);
-                break;
-            }
-            case 'صفحة': {
-                const pagesInRange = getPagesForRange(goalData.range);
-                if (pagesInRange.length > 0) {
-                    trueStartVerse = getComparableVerseValue(pagesInRange[0].start);
-                    trueEndVerse = getComparableVerseValue(pagesInRange.at(-1).end);
-                }
-                break;
-            }
-        }
+        const sura = quranData.surahs.find(s => s.index == suraIndex);
+        if (!sura) return null; // Safety check
         
-        if (!trueStartVerse || !trueEndVerse) {
-            showToast("خطأ: لم يتم تحديد مدى الآيات بشكل صحيح. يرجى مراجعة المدخلات.", 'error', 4000);
-            return null; // Return null on failure
+        return { suraIndex, suraName: sura.titleAr, aya: ayaIndex, suraAyaCount: sura.count };
+    };
+
+    const getNextVerse = (comparable) => {
+        const details = getVerseDetailsFromComparable(comparable);
+        if (!details) return comparable + 1;
+        if (details.aya < details.suraAyaCount) {
+            return comparable + 1;
+        } else {
+            const nextSura = quranData.surahs.find(s => s.index == details.suraIndex + 1);
+            return nextSura ? getComparableVerseValue({ index: nextSura.index, verse: '1' }) : comparable;
         }
-    
-        // 2. Collect all "stops" (rub' or page ends) within the range.
-        const sourceStops = (goalData.quantity.unit === 'ربع') ? quranData.rubs : quranData.pages;
-        let stopsInRange = sourceStops
-            .map(stop => getComparableVerseValue(stop.end))
-            .filter(verse => verse >= trueStartVerse && verse <= trueEndVerse)
-            .sort((a, b) => a - b);
-            
-        if (stopsInRange.length === 0 || stopsInRange.at(-1) < trueEndVerse) {
-            stopsInRange.push(trueEndVerse);
+    };
+
+    const getPagesForRange = (range) => {
+        let startPage, endPage;
+        if (range.unit === 'صفحة') {
+            startPage = parseInt(range.from);
+            endPage = parseInt(range.to);
+        } else if (range.unit === 'جزء') {
+            const startJuz = quranData.juzs.find(j => j.index == range.from);
+            const endJuz = quranData.juzs.find(j => j.index == range.to);
+            if (!startJuz || !endJuz) return [];
+            const startPageObj = quranData.pages.find(p => getComparableVerseValue(p.start) <= getComparableVerseValue(startJuz.start) && getComparableVerseValue(startJuz.start) <= getComparableVerseValue(p.end));
+            const endPageObj = quranData.pages.find(p => getComparableVerseValue(p.start) <= getComparableVerseValue(endJuz.end) && getComparableVerseValue(endJuz.end) <= getComparableVerseValue(p.end));
+            startPage = parseInt(startPageObj?.index);
+            endPage = parseInt(endPageObj?.index);
+        } else { // 'سورة'
+            const startSurah = quranData.surahs.find(s => s.index == range.from);
+            const endSurah = quranData.surahs.find(s => s.index == range.to);
+            if (!startSurah || !endSurah) return [];
+            startPage = parseInt(startSurah.page);
+            const endPageObj = quranData.pages.find(p => p.end.index == endSurah.index && p.end.verse === `verse_${endSurah.count}`);
+            endPage = endPageObj ? parseInt(endPageObj.index) : Math.max(...quranData.pages.filter(p => p.end.index == endSurah.index).map(p => parseInt(p.index)));
         }
-        stopsInRange = [...new Set(stopsInRange)];
-    
-        // 3. Build the plan by iterating through the stops.
-        let currentTaskStart = trueStartVerse;
-        for (let i = 0; i < stopsInRange.length; i += goalData.quantity.amount) {
-            
-            let taskEnd = (i + goalData.quantity.amount - 1 < stopsInRange.length) 
-                ? stopsInRange[i + goalData.quantity.amount - 1] 
-                : trueEndVerse;
-    
-            if (taskEnd > trueEndVerse || i + goalData.quantity.amount >= stopsInRange.length) {
-                taskEnd = trueEndVerse;
+        if (isNaN(startPage) || isNaN(endPage) || startPage > endPage) return [];
+        return quranData.pages.filter(p => parseInt(p.index) >= startPage && parseInt(p.index) <= endPage);
+    };
+
+    // --- Main plan calculation starts here ---
+    let plan = [];
+    let currentDate = new Date(goalData.startDate + 'T00:00:00');
+    let dayCounter = 1;
+
+    let trueStartVerse, trueEndVerse;
+    switch (goalData.range.unit) {
+        case 'سورة': {
+            const startSurah = quranData.surahs.find(s => s.index == goalData.range.from);
+            const endSurah = quranData.surahs.find(s => s.index == goalData.range.to);
+            if (!startSurah || !endSurah) { showToast("لم يتم العثور على السورة المحددة", 'error'); return null; }
+            trueStartVerse = getComparableVerseValue({ index: startSurah.index, verse: '1' });
+            trueEndVerse = getComparableVerseValue({ index: endSurah.index, verse: `${endSurah.count}` });
+            break;
+        }
+        case 'جزء': {
+            const startJuz = quranData.juzs.find(j => j.index == goalData.range.from);
+            const endJuz = quranData.juzs.find(j => j.index == goalData.to);
+            if (!startJuz || !endJuz) { showToast("لم يتم العثور على الجزء المحدد", 'error'); return null; }
+            trueStartVerse = getComparableVerseValue(startJuz.start);
+            trueEndVerse = getComparableVerseValue(endJuz.end);
+            break;
+        }
+        case 'صفحة': {
+            const pagesInRange = getPagesForRange(goalData.range);
+            if (pagesInRange.length > 0) {
+                trueStartVerse = getComparableVerseValue(pagesInRange[0].start);
+                trueEndVerse = getComparableVerseValue(pagesInRange.at(-1).end);
             }
-            
-            const startDetails = getVerseDetailsFromComparable(currentTaskStart);
-            const endDetails = getVerseDetailsFromComparable(taskEnd);
-            if (!startDetails || !endDetails) break;
-    
-            let taskText = (startDetails.suraName === endDetails.suraName)
-                ? `${startDetails.suraName} ${startDetails.aya} - ${endDetails.aya}`
-                : `${startDetails.suraName} ${startDetails.aya} - ${endDetails.suraName} ${endDetails.aya}`;
-    
-            plan.push({
-                day: dayCounter++,
-                plannedDate: currentDate.toISOString(),
-                date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
-                task: taskText,
-                completed: false,
-                completionDate: null
-            });
-            
-            const { unit, amount } = goalData.schedule;
-            if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
-            else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
-            else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
-            
-            if (taskEnd >= trueEndVerse) break;
-    
-            currentTaskStart = getNextVerse(taskEnd);
+            break;
         }
-        
-        return plan;
     }
+    
+    if (!trueStartVerse || !trueEndVerse) {
+        showToast("خطأ: لم يتم تحديد مدى الآيات بشكل صحيح. يرجى مراجعة المدخلات.", 'error', 4000);
+        return null;
+    }
+
+    const sourceStops = (goalData.quantity.unit === 'ربع') ? quranData.rubs : quranData.pages;
+    let stopsInRange = sourceStops
+        .map(stop => getComparableVerseValue(stop.end))
+        .filter(verse => verse >= trueStartVerse && verse <= trueEndVerse)
+        .sort((a, b) => a - b);
+        
+    if (stopsInRange.length === 0 || stopsInRange.at(-1) < trueEndVerse) {
+        stopsInRange.push(trueEndVerse);
+    }
+    stopsInRange = [...new Set(stopsInRange)];
+
+    let currentTaskStart = trueStartVerse; 
+
+    for (let i = 0; i < stopsInRange.length; i += goalData.quantity.amount) {
+        
+        let taskEnd = (i + goalData.quantity.amount - 1 < stopsInRange.length) 
+            ? stopsInRange[i + goalData.quantity.amount - 1] 
+            : trueEndVerse;
+
+        if (taskEnd > trueEndVerse || i + goalData.quantity.amount >= stopsInRange.length) {
+            taskEnd = trueEndVerse;
+        }
+        
+        const startDetails = getVerseDetailsFromComparable(currentTaskStart);
+        const endDetails = getVerseDetailsFromComparable(taskEnd);
+        
+        if (!startDetails || !endDetails) {
+            console.error("DEBUG: Could not get verse details. This should not happen with Live Server.", {currentTaskStart, taskEnd});
+            continue;
+        }
+
+        let taskText = (startDetails.suraName === endDetails.suraName)
+            ? (startDetails.aya === endDetails.aya) ? `${startDetails.suraName} ${startDetails.aya}` : `${startDetails.suraName} ${startDetails.aya} - ${endDetails.aya}`
+            : `${startDetails.suraName} ${startDetails.aya} - ${endDetails.suraName} ${endDetails.aya}`;
+
+        plan.push({
+            day: dayCounter++,
+            plannedDate: currentDate.toISOString(),
+            date: new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(currentDate),
+            task: taskText,
+            completed: false,
+            completionDate: null
+        });
+        
+        const { unit, amount } = goalData.schedule;
+        if (unit === 'يوم') currentDate.setDate(currentDate.getDate() + amount);
+        else if (unit === 'أسبوع') currentDate.setDate(currentDate.getDate() + (7 * amount));
+        else if (unit === 'شهر') currentDate.setMonth(currentDate.getMonth() + amount);
+        
+        if (taskEnd >= trueEndVerse) break;
+        currentTaskStart = getNextVerse(taskEnd);
+    }
+    
+    return plan;
+}
 
 
     // --- EVENT LISTENERS ---
