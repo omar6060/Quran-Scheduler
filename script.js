@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Switches the visible screen in the single-page application.
+     * Switches the visible screen in the single-page application and manages browser history.
      * @param {string} screenId - The ID of the screen to show.
      */
     function showScreen(screenId) {
@@ -137,6 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (screen) {
             screen.classList.add('active');
         }
+
+        // --- الجزء الجديد لإدارة الـ History ---
+        const isSubScreen = screenId !== 'goalsListScreen';
+        const currentHash = window.location.hash.substring(1);
+
+        if (isSubScreen && currentHash !== screenId) {
+            // عند الانتقال لشاشة فرعية، قم بإنشاء سجل جديد في الـ history
+            history.pushState({ screen: screenId }, '', `#${screenId}`);
+        } else if (!isSubScreen && currentHash !== '') {
+            // عند الرجوع للشاشة الرئيسية، قم بإزالة الـ hash
+            history.pushState({ screen: screenId }, '', ' ');
+        }
+        // ------------------------------------
+
         if (screenId === 'goalsListScreen') {
             renderGoalsList();
         }
@@ -873,7 +887,20 @@ function calculatePlan(goalData) {
  * Initializes the entire application.
  */
 function initializeApp() {
-    // الخطوة الجديدة: حذف شاشة التحميل الأولية
+
+    // التعامل مع زر الرجوع في الموبايل/المتصفح
+    window.addEventListener('popstate', (event) => {
+        const hash = window.location.hash.substring(1);
+        const activeScreen = document.querySelector('.screen.active')?.id;
+
+        // إذا كان المستخدم على شاشة فرعية وضغط رجوع، يتم إرجاعه للشاشة الرئيسية
+        if (activeScreen && activeScreen !== 'goalsListScreen') {
+            showScreen('goalsListScreen');
+        } 
+        // إذا كان المستخدم بالفعل على الشاشة الرئيسية وضغط رجوع مرة أخرى، سيقوم المتصفح بالخروج من التطبيق (السلوك الطبيعي)
+    });
+
+    // حذف شاشة التحميل الأولية
     const initialLoader = document.getElementById('initial-loading-screen');
     if (initialLoader) {
         initialLoader.remove();
